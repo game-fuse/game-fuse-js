@@ -24,27 +24,27 @@ In any script on your first scene you can run:
 
 ```
 
-void Start () {
+start () {
     var gameID = 'Your Game ID Here';
     var gameToken 'your Game Token Here';
 
     # 3rd param is the function below, GameFuse will call this function when it is done connecting your game
-    GameFuse.SetUpGame(gameID, gameToken, GameSetUpCallback);
+    GameFuse.setUpGame(gameID, gameToken, function(message,hasError){self.gameSetUp(message,hasError)}, true);
 }
 
 
 
-void GameSetUpCallback(string message, bool hasError) {
+gameSetUp(message, hasError) {
     if (hasError)
     {
-        Debug.Error("Error connecting game: "+message);
+        console.log("Error connecting game: "+message);
     }
     else
     {
-        Debug.Log("Game Connected Successfully")
+        console.log("Game Connected Successfully")
         foreach (GameFuseStoreItem storeItem in GameFuse.GetStoreItems())
         {
-            Debug.Log(storeItem.GetName() + ": " + storeItem.GetCost());
+            console.log(storeItem.GetName() + ": " + storeItem.GetCost());
         }
     }
 }
@@ -56,24 +56,24 @@ After completion of this GameFuse function, for this code example, we print out 
 ## Signing game users up
 
 Enable users to sign up in your Unity game with the following code. They will be saved on your GameFuse Game and can then login from other devices since the data is saved online.
-Add a method on a MonoBehavior on your sign up scene after you have collected your inputted username and password. Maybe this is on a a button function for a 'submit' or 'register' button.
+Add a method on a script on your sign up scene after you have collected your inputted username and password. Maybe this is on a a button function for a 'submit' or 'register' button.
 Username is mandatory but it is just for display. Later sign in attempts will use email not username
 
 ```
 #Feed in your users email, username and password here
-void SignUp (email, password, password_confirmation, username) {
+signUp (email, password, password_confirmation, username) {
 	#5th parameter is the callback when execution is complete
-  	GameFuse.SignUp(userEmail, "password", "password", username, SignedUp);
+  	GameFuse.signUp(this.userEmail, "password", "password", this.username, function(message,hasError){self.signedUp(message,hasError)});
 }
 
-void SignedUp(string message, bool hasError) {
+signedUp(string message, bool hasError) {
   	if (hasError)
   	{
-    	Debug.Error("Error signign up: "+message);
+    	console.log("Error signign up: "+message);
   	}
   	else
   	{
-    	Debug.Log("Signed Up: " + GameFuseUser.CurrentUser.GetName());
+    	console.log("Signed Up: " + GameFuseUser.CurrentUser.GetName());
   	}
 }
 ```
@@ -86,27 +86,27 @@ Email and password (not username), will be used to sign in
 
 ```
 #Feed in your users email and password here
-void SignIn (email, password, SignedIn) {
+signIn (email, password, SignedIn) {
 	#3rd parameter is the callback when execution is complete
-  	GameFuse.SignIn(userEmail, password, SignedIn);
+  	GameFuse.signIn(this.userEmail, "password", function(message,hasError){self.signedIn(message,hasError)});
 }
 
-void SignedIn(string message, bool hasError) {
+signedIn(string message, bool hasError) {
   	if (hasError)
   	{
-      	Debug.Error("Error signign up: "+message);
+      	console.log("Error signign in: "+message);
   	}
   	else
   	{
-      	Debug.Log("Logged In: " + GameFuseUser.CurrentUser.GetName());
-      	Debug.Log("Current Credits: " + GameFuseUser.CurrentUser.GetCredits());
+      	console.log("Logged In: " + GameFuseUser.CurrentUser.GetName());
+      	console.log("Current Credits: " + GameFuseUser.CurrentUser.GetCredits());
   	}
 }
 ```
 
 ## Creating store items on the web
 
-
+TODO - DOCS DONE UP TO HERE!!!!!!!!!!!!!!
 To create store items on the web, navigate to your GameFuse.co home page, and sign in if you are not already
 You can click on your Game on the homepage you want to add items for. On this page if you scroll down to the Store Items section, you will see + STORE ITEM button, here you can add in Name, Cost, Description, and Category. All are mandatory but do not need to used in your game. The store feature does not integrate real payment systems, this is for items you want your users to be able to "unlock" with in-game-currency or with achievements in the game. How you configure that is up to you.
 
@@ -118,11 +118,11 @@ To access store items and attributes by calling  the following code. This doesnt
 ```
 foreach (GameFuseStoreItem storeItem in GameFuse.GetStoreItems())
 {
-    Debug.Log(storeItem.GetName());  //FireBow
-    Debug.Log(storeItem.GetCategory()); //BowAndArrows
-    Debug.Log(storeItem.GetId()); //12
-    Debug.Log(storeItem.GetDescription());  //A bow and arrow item that shoots fire arrows
-    Debug.Log(storeItem.GetCost()); // 500 (credits)
+    console.log(storeItem.GetName());  //FireBow
+    console.log(storeItem.GetCategory()); //BowAndArrows
+    console.log(storeItem.GetId()); //12
+    console.log(storeItem.GetDescription());  //A bow and arrow item that shoots fire arrows
+    console.log(storeItem.GetCost()); // 500 (credits)
 }
 ```
 
@@ -138,20 +138,20 @@ Because this function talks to the server, it will require a callback. If the us
 This function will refresh the GameFuseUser.CurrentUser.purchasedStoreItems List with the new item
 
 ```
-void PurchaseItem(store_item){
-  Debug.Log(GameFuseUser.CurrentUser.purchasedStoreItems.Count); // Prints 0
+PurchaseItem(store_item){
+  console.log(GameFuseUser.CurrentUser.purchasedStoreItems.Count); // Prints 0
   GameFuseUser.PurchaseStoreItem(GameFuse.GetStoreItems().First, PurchasedItemCallback)
 }
 
-void PurchasedItemCallback(string message, bool hasError) {
+PurchasedItemCallback(string message, bool hasError) {
   if (hasError)
   {
-      Debug.Error("Error purchasing item: "+message);
+      console.log("Error purchasing item: "+message);
   }
   else
   {
-      Debug.Log("Purchased Item");
-      Debug.Log(GameFuseUser.CurrentUser.purchasedStoreItems.Count); // Prints 1
+      console.log("Purchased Item");
+      console.log(GameFuseUser.CurrentUser.purchasedStoreItems.Count); // Prints 1
   }
 }
 ```
@@ -165,36 +165,36 @@ You can add them manually and they are detracted automatically upon store item p
 Below is a script to demonstrate the full lifecycle of credits on a signed in user. First it prints the credits your signed in user has, then prints the cost of the first store item, then it adds credits to your user. Because this syncs with the server, it requires a callback. Upon success, you will see the user now has more credits when logged. At this point in time you can then run the purchase store item function successfully.
 
 ```
-void Start(){
-    Debug.Log(GameFuseUser.CurrentUser.credits;  // Prints 0
-    Debug.Log(GameFuse.GetStoreItems().First.cost) // Prints 25 (or whatever you set your first item to on the web dashboard)
+Start(){
+    console.log(GameFuseUser.CurrentUser.credits;  // Prints 0
+    console.log(GameFuse.GetStoreItems().First.cost) // Prints 25 (or whatever you set your first item to on the web dashboard)
     GameFuseUser.CurrentUser.AddCredits(50, AddCreditsCallback);
 }
 
-void AddCreditsCallback(string message, bool hasError)
+AddCreditsCallback(string message, bool hasError)
 {
     if (hasError)
     {
-        Debug.Error("Error adding credits: " + message);
+        console.log("Error adding credits: " + message);
     }
     else
     {
-      Debug.Log(GameFuseUser.CurrentUser.credits;  // Prints 50
+      console.log(GameFuseUser.CurrentUser.credits;  // Prints 50
       GameFuseUser.PurchaseStoreItem(GameFuse.GetStoreItems().First, PurchasedItemCallback)
 
     }
 
 }
 
-void PurchasedItemCallback(string message, bool hasError) {
+PurchasedItemCallback(string message, bool hasError) {
   if (hasError)
   {
-      Debug.Error("Error purchasing item: "+message);
+      console.log("Error purchasing item: "+message);
   }
   else
   {
-      Debug.Log("Purchased Item");
-      Debug.Log("Current Credits: " + GameFuseUser.CurrentUser.GetCredits());
+      console.log("Purchased Item");
+      console.log("Current Credits: " + GameFuseUser.CurrentUser.GetCredits());
   }
 }
 
@@ -209,20 +209,20 @@ These are downloaded to your system upon login, and synced when one is updated. 
 All values and keys must be strings. If you want to use other data structures like arrays, you could stringify the array on save, and convert the saved string to an array on load.
 
 ```
-void Start(){
-    Debug.Log(GameFuseUser.CurrentUser.attributes.Count);  // Prints 0
-    Debug.Log(GameFuseUser.CurrentUser.GetAttributeValue("CURRENT_LEVEL") == null); // Prints true
+Start(){
+    console.log(GameFuseUser.CurrentUser.attributes.Count);  // Prints 0
+    console.log(GameFuseUser.CurrentUser.GetAttributeValue("CURRENT_LEVEL") == null); // Prints true
     GameFuseUser.CurrentUser.SetAttribute("CURRENT_LEVEL", "5", SetAttributeCallback);
 }
 
-void SetAttributeCallback(string message, bool hasError) {
+SetAttributeCallback(string message, bool hasError) {
   if (hasError)
   {
-      Debug.Error("Error setting attribute: "+message);
+      console.log("Error setting attribute: "+message);
   }
   else
   {
-      Debug.Log(GameFuseUser.CurrentUser.GetAttributeValue("CURRENT_LEVEL")); // Prints "5"
+      console.log(GameFuseUser.CurrentUser.GetAttributeValue("CURRENT_LEVEL")); // Prints "5"
   }
 }
 ```
@@ -237,14 +237,14 @@ The below example shows submitting 2 leaderboard entries, then retrieving them f
 
 
 ```
-void Start(){
+Start(){
   var extraAttributes = new Dictionary < string, string > ();
   extraAttributes.Add("deaths", "15");
   extraAttributes.Add("Jewels", "12");
   GameFuseUser.CurrentUser.AddLeaderboardEntry("Game1Leaderboard",10, extraAttributes, LeaderboardEntryAdded);
 }
 
-void LeaderboardEntryAdded(string message, bool hasError)
+LeaderboardEntryAdded(string message, bool hasError)
 {
     if (hasError)
     {
@@ -263,7 +263,7 @@ void LeaderboardEntryAdded(string message, bool hasError)
     }
 }
 
-void LeaderboardEntryAdded2(string message, bool hasError)
+LeaderboardEntryAdded2(string message, bool hasError)
 {
     if (hasError)
     {
@@ -276,7 +276,7 @@ void LeaderboardEntryAdded2(string message, bool hasError)
     }
 }
 
-void LeaderboardEntriesRetrieved(string message, bool hasError)
+LeaderboardEntriesRetrieved(string message, bool hasError)
 {
     if (hasError)
     {
@@ -300,7 +300,7 @@ void LeaderboardEntriesRetrieved(string message, bool hasError)
     }
 }
 
-void LeaderboardEntriesRetrievedAll(string message, bool hasError)
+LeaderboardEntriesRetrievedAll(string message, bool hasError)
 {
     if (hasError)
     {
@@ -326,14 +326,14 @@ void LeaderboardEntriesRetrievedAll(string message, bool hasError)
 You can also clear all leaderboard entries for a particular leaderboard_name for the current user like this:
 
 ```
-void Start(){
+Start(){
   var extraAttributes = new Dictionary < string, string > ();
   extraAttributes.Add("deaths", "15");
   extraAttributes.Add("Jewels", "12");
   GameFuseUser.CurrentUser.AddLeaderboardEntry("Game2Leaderboard",10, extraAttributes, LeaderboardEntryAdded);
 }
 
-void LeaderboardEntryAdded(string message, bool hasError)
+LeaderboardEntryAdded(string message, bool hasError)
 {
     if (hasError)
     {
@@ -348,7 +348,7 @@ void LeaderboardEntryAdded(string message, bool hasError)
     }
 }
 
-void LeaderboardEntryCleared(string message, bool hasError)
+LeaderboardEntryCleared(string message, bool hasError)
 {
     if (hasError)
     {
@@ -379,34 +379,34 @@ public string GetUsername();
 public int GetScore();
 public int GetCredits();
 
-public void AddCredits(int credits, Action < string, bool > callback = null);
-public void SetCredits(int credits, Action < string, bool > callback = null);
-public void AddScore(int credits, Action < string, bool > callback = null);
-public void SetScore(int score, Action < string, bool > callback = null);
+public AddCredits(int credits, Action < string, bool > callback = null);
+public SetCredits(int credits, Action < string, bool > callback = null);
+public AddScore(int credits, Action < string, bool > callback = null);
+public SetScore(int score, Action < string, bool > callback = null);
 public Dictionary < string,string >  GetAttributes();
 public Dictionary < string,string > .KeyCollection GetAttributesKeys();
 public string GetAttributeValue(string key);
-public void SetAttribute(string key, string value, Action < string, bool > callback = null);
-public void RemoveAttribute(string key, Action < string, bool > callback = null);
+public SetAttribute(string key, string value, Action < string, bool > callback = null);
+public RemoveAttribute(string key, Action < string, bool > callback = null);
 public List < GameFuseStoreItem > GetPurchasedStoreItems();
-public void PurchaseStoreItem(GameFuseStoreItem storeItem, Action < string, bool > callback = null);
-public void PurchaseStoreItem(int storeItemId, Action < string, bool > callback = null);
-public void RemoveStoreItem(int storeItemID, bool reimburseUser, Action < string, bool > callback = null);
-public void RemoveStoreItem(GameFuseStoreItem storeItem, bool reimburseUser, Action < string, bool > callback = null);
-public void AddLeaderboardEntry(string leaderboardName, int score, Dictionary extraAttributes = null, Action < string, bool > callback = null);
-public void AddLeaderboardEntry(string leaderboardName, int score, Action < string, bool > callback = null);
-public void GetLeaderboard(int limit, bool onePerUser, Action < string, bool > callback = null); //Get all leaderboard entries for current signed in user
+public PurchaseStoreItem(GameFuseStoreItem storeItem, Action < string, bool > callback = null);
+public PurchaseStoreItem(int storeItemId, Action < string, bool > callback = null);
+public RemoveStoreItem(int storeItemID, bool reimburseUser, Action < string, bool > callback = null);
+public RemoveStoreItem(GameFuseStoreItem storeItem, bool reimburseUser, Action < string, bool > callback = null);
+public AddLeaderboardEntry(string leaderboardName, int score, Dictionary extraAttributes = null, Action < string, bool > callback = null);
+public AddLeaderboardEntry(string leaderboardName, int score, Action < string, bool > callback = null);
+public GetLeaderboard(int limit, bool onePerUser, Action < string, bool > callback = null); //Get all leaderboard entries for current signed in user
 
 
 ###GameFuse.cs
-public static void SetUpGame(string gameId, string token, Action < string, bool > callback = null);
+public static SetUpGame(string gameId, string token, Action < string, bool > callback = null);
 public static string GetGameId();
 public static string GetGameName();
 public static string GetGameDescription();
 public static List < GameFuseStoreItem > GetStoreItems() //Gets all store items (your library)
-public static void SignIn(string email, string password, Action < string, bool > callback = null);
-public static void SignUp(string email, string password, string password_confirmation, string username, Action < string, bool > callback = null);
-public void GetLeaderboard(int limit, bool onePerUser, string LeaderboardName, Action < string, bool > callback = null); //Retrieves leaderboard for one specific Leaderboard Name
+public static SignIn(string email, string password, Action < string, bool > callback = null);
+public static SignUp(string email, string password, string password_confirmation, string username, Action < string, bool > callback = null);
+public GetLeaderboard(int limit, bool onePerUser, string LeaderboardName, Action < string, bool > callback = null); //Retrieves leaderboard for one specific Leaderboard Name
 
 
 ###GameFuseStoreItem.cs
