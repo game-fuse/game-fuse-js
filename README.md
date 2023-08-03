@@ -375,57 +375,57 @@ LeaderboardEntryCleared(message, hasError)
 Check each model below for a list of methods and attributes.
 
 ```
-###GameFuseUser.cs
+###GameFuseUser.js
 your current signed in user can be retrieved with:
-GameFuseUser user = GameFuse.CurrentUser;
+gameFuseUser user = GameFuse.CurrentUser;
 
-public bool IsSignedIn();
-public int GetNumberOfLogins();
-public DateTime GetLastLogin();
-public string GetUsername();
-public int GetScore();
-public int GetCredits();
+isSignedIn();
+getNumberOfLogins();
+getLastLogin();
+getUsername();
+getScore();
+getCredits();
 
-public AddCredits(int credits, Action < string, bool > callback = null);
-public SetCredits(int credits, Action < string, bool > callback = null);
-public AddScore(int credits, Action < string, bool > callback = null);
-public SetScore(int score, Action < string, bool > callback = null);
-public Dictionary < string,string >  GetAttributes();
-public Dictionary < string,string > .KeyCollection GetAttributesKeys();
-public string GetAttributeValue(string key);
-public SetAttribute(string key, string value, Action < string, bool > callback = null);
-public RemoveAttribute(string key, Action < string, bool > callback = null);
-public List < GameFuseStoreItem > GetPurchasedStoreItems();
-public PurchaseStoreItem(GameFuseStoreItem storeItem, Action < string, bool > callback = null);
-public PurchaseStoreItem(int storeItemId, Action < string, bool > callback = null);
-public RemoveStoreItem(int storeItemID, bool reimburseUser, Action < string, bool > callback = null);
-public RemoveStoreItem(GameFuseStoreItem storeItem, bool reimburseUser, Action < string, bool > callback = null);
-public AddLeaderboardEntry(string leaderboardName, int score, Dictionary extraAttributes = null, Action < string, bool > callback = null);
-public AddLeaderboardEntry(string leaderboardName, int score, Action < string, bool > callback = null);
-public GetLeaderboard(int limit, bool onePerUser, Action < string, bool > callback = null); //Get all leaderboard entries for current signed in user
-
-
-###GameFuse.cs
-public static SetUpGame(string gameId, string token, Action < string, bool > callback = null);
-public static string GetGameId();
-public static string GetGameName();
-public static string GetGameDescription();
-public static List < GameFuseStoreItem > GetStoreItems() //Gets all store items (your library)
-public static SignIn(string email, string password, Action < string, bool > callback = null);
-public static SignUp(string email, string password, string password_confirmation, string username, Action < string, bool > callback = null);
-public GetLeaderboard(int limit, bool onePerUser, string LeaderboardName, Action < string, bool > callback = null); //Retrieves leaderboard for one specific Leaderboard Name
+addCredits(int credits, Action < string, bool > callback = null);
+setCredits(int credits, Action < string, bool > callback = null);
+addScore(int credits, Action < string, bool > callback = null);
+setScore(int score, Action < string, bool > callback = null);
+getAttributes();
+getAttributesKeys();
+getAttributeValue(string key);
+setAttribute(string key, string value, Action < string, bool > callback = null);
+removeAttribute(string key, Action < string, bool > callback = null);
+getPurchasedStoreItems();
+purchaseStoreItem(GameFuseStoreItem storeItem, Action < string, bool > callback = null);
+purchaseStoreItem(int storeItemId, Action < string, bool > callback = null);
+removeStoreItem(int storeItemID, bool reimburseUser, Action < string, bool > callback = null);
+removeStoreItem(GameFuseStoreItem storeItem, bool reimburseUser, Action < string, bool > callback = null);
+addLeaderboardEntry(string leaderboardName, int score, Dictionary extraAttributes = null, Action < string, bool > callback = null);
+addLeaderboardEntry(string leaderboardName, int score, Action < string, bool > callback = null);
+getLeaderboard(int limit, bool onePerUser, Action < string, bool > callback = null); //Get all leaderboard entries for current signed in user
 
 
-###GameFuseStoreItem.cs
-public string GetName();
-public string GetCategory();
-public string GetDescription();
-public int GetCost();
-public int GetId();
+###GameFuse.js
+setUpGame(string gameId, string token, Action < string, bool > callback = null);
+getGameId();
+getGameName();
+getGameDescription();
+getStoreItems() //Gets all store items (your library)
+signIn(string email, string password, Action < string, bool > callback = null);
+signUp(string email, string password, string password_confirmation, string username, Action < string, bool > callback = null);
+getLeaderboard(int limit, bool onePerUser, string LeaderboardName, Action < string, bool > callback = null); //Retrieves leaderboard for one specific Leaderboard Name
 
-###GameFuseLeaderboardEntry.cs
-public string GetUsername();
-public int GetScore();
-public string GetLeaderboardName();
-public Dictionary GetExtraAttributes();
+
+###GameFuseStoreItem.js
+getName();
+getCategory();
+getDescription();
+getCost();
+getId();
+
+###GameFuseLeaderboardEntry.js
+getUsername();
+getScore();
+getLeaderboardName();
+getExtraAttributes();
 ```
