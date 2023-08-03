@@ -12,7 +12,7 @@ If your game engine has an editable HTML file, you can paste the following in th
 <script src="https://cdn.jsdelivr.net/gh/game-fuse/game-fuse-js@main/gameFuseFull.min.js"></script>
 ```
 
-### Playcanvas 
+### Playcanvas
 Playcanvas has a different method, in your scene, go to the settings wheel on the top bar, then click on "external scripts" on the left panel that is opened, then paste the following in a new enty: "https://cdn.jsdelivr.net/gh/game-fuse/game-fuse-js@main/gameFuseFull.min.js". This effectivly does the same thing as the prior method on build. If you would like to see an example in action, check out https://playcanvas.com/editor/scene/1799045
 
 
@@ -29,6 +29,7 @@ start () {
     var gameToken 'your Game Token Here';
 
     # 3rd param is the function below, GameFuse will call this function when it is done connecting your game
+    let self = this;
     GameFuse.setUpGame(gameID, gameToken, function(message,hasError){self.gameSetUp(message,hasError)}, true);
 }
 
@@ -63,10 +64,11 @@ Username is mandatory but it is just for display. Later sign in attempts will us
 #Feed in your users email, username and password here
 signUp (email, password, password_confirmation, username) {
 	#5th parameter is the callback when execution is complete
+    let self = this;
   	GameFuse.signUp(this.userEmail, "password", "password", this.username, function(message,hasError){self.signedUp(message,hasError)});
 }
 
-signedUp(string message, bool hasError) {
+signedUp(message, hasError) {
   	if (hasError)
   	{
     	console.log("Error signign up: "+message);
@@ -88,10 +90,11 @@ Email and password (not username), will be used to sign in
 #Feed in your users email and password here
 signIn (email, password, SignedIn) {
 	#3rd parameter is the callback when execution is complete
+    let self = this;
   	GameFuse.signIn(this.userEmail, "password", function(message,hasError){self.signedIn(message,hasError)});
 }
 
-signedIn(string message, bool hasError) {
+signedIn(message, hasError) {
   	if (hasError)
   	{
       	console.log("Error signign in: "+message);
@@ -106,7 +109,6 @@ signedIn(string message, bool hasError) {
 
 ## Creating store items on the web
 
-TODO - DOCS DONE UP TO HERE!!!!!!!!!!!!!!
 To create store items on the web, navigate to your GameFuse.co home page, and sign in if you are not already
 You can click on your Game on the homepage you want to add items for. On this page if you scroll down to the Store Items section, you will see + STORE ITEM button, here you can add in Name, Cost, Description, and Category. All are mandatory but do not need to used in your game. The store feature does not integrate real payment systems, this is for items you want your users to be able to "unlock" with in-game-currency or with achievements in the game. How you configure that is up to you.
 
@@ -116,8 +118,7 @@ Store Items Library are downloaded upon SignIn() and SignUp(), The Items will be
 To access store items and attributes by calling  the following code. This doesnt sync them with the available items on the server, it is simply showing you the results downloaded on sign in or sign up.
 
 ```
-foreach (GameFuseStoreItem storeItem in GameFuse.GetStoreItems())
-{
+for (const storeItem of GameFuse.getStoreItems()) {
     console.log(storeItem.GetName());  //FireBow
     console.log(storeItem.GetCategory()); //BowAndArrows
     console.log(storeItem.GetId()); //12
@@ -130,7 +131,7 @@ To access purchased store items by your current logged in user call the followin
 This will throw an error if you are not signed in already
 
 ```
-List < GameFuseStoreItem > items = GameFuseUser.CurrentUser.GetPurchasedStoreItems();
+const items = GameFuseUser.CurrentUser.getPurchasedStoreItems();
 ```
 
 To Purchase a store item simply call the code below.
@@ -139,11 +140,12 @@ This function will refresh the GameFuseUser.CurrentUser.purchasedStoreItems List
 
 ```
 PurchaseItem(store_item){
-  console.log(GameFuseUser.CurrentUser.purchasedStoreItems.Count); // Prints 0
-  GameFuseUser.PurchaseStoreItem(GameFuse.GetStoreItems().First, PurchasedItemCallback)
+  let self = this;
+  console.log(GameFuseUser.CurrentUser.getPurchasedStoreItems().length); // Prints 0
+  GameFuseUser.PurchaseStoreItem(GameFuse.GetStoreItems().First, function(message,hasError){self.PurchasedItemCallback(message,hasError)})
 }
 
-PurchasedItemCallback(string message, bool hasError) {
+PurchasedItemCallback(message, hasError) {
   if (hasError)
   {
       console.log("Error purchasing item: "+message);
@@ -151,7 +153,7 @@ PurchasedItemCallback(string message, bool hasError) {
   else
   {
       console.log("Purchased Item");
-      console.log(GameFuseUser.CurrentUser.purchasedStoreItems.Count); // Prints 1
+      console.log(GameFuseUser.CurrentUser.getPurchasedStoreItems().length); // Prints 1
   }
 }
 ```
@@ -166,12 +168,13 @@ Below is a script to demonstrate the full lifecycle of credits on a signed in us
 
 ```
 Start(){
-    console.log(GameFuseUser.CurrentUser.credits;  // Prints 0
-    console.log(GameFuse.GetStoreItems().First.cost) // Prints 25 (or whatever you set your first item to on the web dashboard)
-    GameFuseUser.CurrentUser.AddCredits(50, AddCreditsCallback);
+    let self = this;
+    console.log(GameFuseUser.CurrentUser.getCredits());  // Prints 0
+    console.log(GameFuse.getStoreItems()[0].cost) // Prints 25 (or whatever you set your first item to on the web dashboard)
+    GameFuseUser.CurrentUser.AddCredits(50, function(message,hasError){self.AddCreditsCallback(message,hasError)});
 }
 
-AddCreditsCallback(string message, bool hasError)
+AddCreditsCallback(message, hasError)
 {
     if (hasError)
     {
@@ -179,14 +182,15 @@ AddCreditsCallback(string message, bool hasError)
     }
     else
     {
-      console.log(GameFuseUser.CurrentUser.credits;  // Prints 50
-      GameFuseUser.PurchaseStoreItem(GameFuse.GetStoreItems().First, PurchasedItemCallback)
+      let self = this;
+      console.log(GameFuseUser.CurrentUser.getCredits();  // Prints 50
+      GameFuseUser.PurchaseStoreItem(GameFuse.GetStoreItems()[0], function(message,hasError){self.PurchasedItemCallback(message,hasError)})
 
     }
 
 }
 
-PurchasedItemCallback(string message, bool hasError) {
+PurchasedItemCallback(message, hasError) {
   if (hasError)
   {
       console.log("Error purchasing item: "+message);
@@ -210,12 +214,13 @@ All values and keys must be strings. If you want to use other data structures li
 
 ```
 Start(){
-    console.log(GameFuseUser.CurrentUser.attributes.Count);  // Prints 0
+    let self = this;
+    console.log(GameFuseUser.CurrentUser.attributes.length);  // Prints 0
     console.log(GameFuseUser.CurrentUser.GetAttributeValue("CURRENT_LEVEL") == null); // Prints true
-    GameFuseUser.CurrentUser.SetAttribute("CURRENT_LEVEL", "5", SetAttributeCallback);
+    GameFuseUser.CurrentUser.SetAttribute("CURRENT_LEVEL", "5", function(message,hasError){self.SetAttributeCallback(message,hasError)});
 }
 
-SetAttributeCallback(string message, bool hasError) {
+SetAttributeCallback(message, hasError) {
   if (hasError)
   {
       console.log("Error setting attribute: "+message);
@@ -238,14 +243,16 @@ The below example shows submitting 2 leaderboard entries, then retrieving them f
 
 ```
 Start(){
-  var extraAttributes = new Dictionary < string, string > ();
-  extraAttributes.Add("deaths", "15");
-  extraAttributes.Add("Jewels", "12");
-  GameFuseUser.CurrentUser.AddLeaderboardEntry("Game1Leaderboard",10, extraAttributes, LeaderboardEntryAdded);
+  let self = this
+  var extraAttributes = {};
+  extraAttributes["deaths"] =  "15";
+  extraAttributes["Jewels"] =  "12";
+  GameFuseUser.CurrentUser.AddLeaderboardEntry("Game1Leaderboard",10, extraAttributes, function(message,hasError){self.LeaderboardEntryAdded(message,hasError)});
 }
 
-LeaderboardEntryAdded(string message, bool hasError)
+LeaderboardEntryAdded(message, hasError)
 {
+    let self = this;
     if (hasError)
     {
         print("Error adding leaderboard entry: " + message);
@@ -254,17 +261,18 @@ LeaderboardEntryAdded(string message, bool hasError)
     {
 
         print("Set Leaderboard Entry 2");
-        var extraAttributes = new Dictionary < string, string > ();
-        extraAttributes.Add("deaths", "25");
-        extraAttributes.Add("Jewels", "15");
+        var extraAttributes = {};
+        extraAttributes.["deaths"] = "25";
+        extraAttributes.["Jewels"] = "15";
 
-        GameFuseUser.CurrentUser.AddLeaderboardEntry("Game1Leaderboard", 7, extraAttributes, LeaderboardEntryAdded2);
+        GameFuseUser.CurrentUser.AddLeaderboardEntry("Game1Leaderboard", 7, extraAttributes, function(message,hasError){self.LeaderboardEntryAdded2(message,hasError)});
 
     }
 }
 
-LeaderboardEntryAdded2(string message, bool hasError)
+LeaderboardEntryAdded2(message, hasError)
 {
+    let self = this;
     if (hasError)
     {
         print("Error adding leaderboard entry 2: " + message);
@@ -272,11 +280,11 @@ LeaderboardEntryAdded2(string message, bool hasError)
     else
     {
         print("Set Leaderboard Entry 2");
-        GameFuseUser.CurrentUser.GetLeaderboard(5, true, LeaderboardEntriesRetrieved);
+        GameFuseUser.CurrentUser.GetLeaderboard(5, true, function(message,hasError){self.LeaderboardEntriesRetrieved(message,hasError)});
     }
 }
 
-LeaderboardEntriesRetrieved(string message, bool hasError)
+LeaderboardEntriesRetrieved(message, hasError)
 {
     if (hasError)
     {
@@ -284,23 +292,22 @@ LeaderboardEntriesRetrieved(string message, bool hasError)
     }
     else
     {
-
+        let self = this;
         print("Got leaderboard entries for specific user!");
-        foreach( GameFuseLeaderboardEntry entry in GameFuse.Instance.leaderboardEntries)
-        {
-            print(entry.GetUsername() + ": " + entry.GetScore().ToString() + ": " + entry.GetLeaderboardName() );
-            foreach (KeyValuePair < string,string > kvPair in entry.GetExtraAttributes())
-            {
-                print(kvPair.Key + ": " + kvPair.Value);
+        for (const entry of GameFuse.Instance.leaderboardEntries) {
+            console.log(entry.getUsername() + ": " + entry.getScore().toString() + ": " + entry.getLeaderboardName());
+            const extraAttributes = entry.getExtraAttributes();
+            for (const key in extraAttributes) { 
+                console.log(key + ": " + extraAttributes[key]); 
             }
 
         }
-        GameFuse.Instance.GetLeaderboard(5, true, "Game1Leaderboard", LeaderboardEntriesRetrievedAll);
+        GameFuse.Instance.GetLeaderboard(5, true, "Game1Leaderboard", function(message,hasError){self.LeaderboardEntriesRetrievedAll(message,hasError)});
 
     }
 }
 
-LeaderboardEntriesRetrievedAll(string message, bool hasError)
+LeaderboardEntriesRetrievedAll(message, hasError)
 {
     if (hasError)
     {
@@ -308,13 +315,13 @@ LeaderboardEntriesRetrievedAll(string message, bool hasError)
     }
     else
     {
+        let self = this;
         print("Got leaderboard entries for whole game!");
-        foreach (GameFuseLeaderboardEntry entry in GameFuse.Instance.leaderboardEntries)
-        {
-            print(entry.GetUsername() + ": " + entry.GetScore().ToString() + ": " + entry.GetLeaderboardName());
-            foreach (KeyValuePair < string, string > kvPair in entry.GetExtraAttributes())
-            {
-                print(kvPair.Key + ": " + kvPair.Value);
+        for (const entry of GameFuse.Instance.leaderboardEntries) {
+            console.log(entry.getUsername() + ": " + entry.getScore().toString() + ": " + entry.getLeaderboardName());
+            const extraAttributes = entry.getExtraAttributes();
+            for (const key in extraAttributes) { 
+                console.log(key + ": " + extraAttributes[key]); 
             }
 
         }
@@ -327,28 +334,28 @@ You can also clear all leaderboard entries for a particular leaderboard_name for
 
 ```
 Start(){
-  var extraAttributes = new Dictionary < string, string > ();
-  extraAttributes.Add("deaths", "15");
-  extraAttributes.Add("Jewels", "12");
-  GameFuseUser.CurrentUser.AddLeaderboardEntry("Game2Leaderboard",10, extraAttributes, LeaderboardEntryAdded);
+  let self = this;
+  var extraAttributes = {};
+  extraAttributes["deaths"] = "15";
+  extraAttributes["Jewels"] = "12";
+  GameFuseUser.CurrentUser.AddLeaderboardEntry("Game2Leaderboard",10, extraAttributes, function(message,hasError){self.LeaderboardEntryAdded(message,hasError)});
 }
 
-LeaderboardEntryAdded(string message, bool hasError)
+LeaderboardEntryAdded(message, hasError)
 {
+    let self = this;
     if (hasError)
     {
         print("Error adding leaderboard entry: " + message);
     }
     else
     {
-
         print("Clear Leaderboard Entry 2");
-        GameFuseUser.CurrentUser.ClearLeaderboardEntries("Game2Leaderboard", LeaderboardEntryCleared);
-
+        GameFuseUser.CurrentUser.ClearLeaderboardEntries("Game2Leaderboard", function(message,hasError){self.LeaderboardEntryCleared(message,hasError)});
     }
 }
 
-LeaderboardEntryCleared(string message, bool hasError)
+LeaderboardEntryCleared(message, hasError)
 {
     if (hasError)
     {
