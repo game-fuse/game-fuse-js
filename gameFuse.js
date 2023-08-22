@@ -19,7 +19,7 @@
     }
 
     static getBaseURL() {
-        return "http://localhost/api/v1";
+        return "https://gamefuse.co/api/v1";
     }
 
     static getGameId() {

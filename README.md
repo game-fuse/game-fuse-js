@@ -56,7 +56,7 @@ After completion of this GameFuse function, for this code example, we print out 
 
 ## Signing game users up
 
-Enable users to sign up in your Unity game with the following code. They will be saved on your GameFuse Game and can then login from other devices since the data is saved online.
+Enable users to sign up in your JS game with the following code. They will be saved on your GameFuse Game and can then login from other devices since the data is saved online.
 Add a method on a script on your sign up scene after you have collected your inputted username and password. Maybe this is on a a button function for a 'submit' or 'register' button.
 Username is mandatory but it is just for display. Later sign in attempts will use email not username
 
@@ -235,7 +235,7 @@ SetAttributeCallback(message, hasError) {
 ## In game leaderboard
 
 Leaderboards can be easily created within GameFuse
-From the Unity game client, a Leaderboard Entry can be added with a leaderboard_name, score, and extra_attributes (metadata) for the current signed in user
+From the JS game client, a Leaderboard Entry can be added with a leaderboard_name, score, and extra_attributes (metadata) for the current signed in user
 Leaderboards can be downloaded for a specific leaderboard_name, which would gather all the high scores in order for all users in the game or
 Leaderboards can be downloaded for a specific user, so that you can download the current users leaderboard data for all leaderboard_names
 The below example shows submitting 2 leaderboard entries, then retrieving them for the game, and for the current user
