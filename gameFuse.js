@@ -56,18 +56,18 @@
         GameFuse.Log(log)
     }
 
-    static setUpGame(gameId, token, callback = undefined, seedStore = false) {
+    static setUpGame(gameId, token, callback = undefined, extraData={}) {
         this.Log(`GameFuse Setting Up Game: ${gameId}: ${token}`);
-        this.Instance.setUpGamePrivate(gameId, token, callback, seedStore);
+        this.Instance.setUpGamePrivate(gameId, token, callback, extraData);
     }
 
-    setUpGamePrivate(gameId, token, callback = undefined, seedStore = false) {
-        this.setUpGameRoutine(gameId, token, callback, seedStore);
+    setUpGamePrivate(gameId, token, callback = undefined, extraData={}) {
+        this.setUpGameRoutine(gameId, token, callback, extraData);
     }
 
-    async setUpGameRoutine(gameId, token, callback = undefined, seedStore = false) {
+    async setUpGameRoutine(gameId, token, callback = undefined, extraData={}) {
         var body = `game_id=${gameId}&game_token=${token}`;
-        if (seedStore == "seedStore") {
+        if (extraData.seedStore == "seedStore") {
             body += "&seed_store=true";
         }
         this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/verify?${body}`);
