@@ -41,8 +41,15 @@
       const data = await response.json();
 
       if (data && data.error) {
-        response.status = 501;
-        response.ok = false
+        const newResponse = new Response(response.body, {
+          status: 501,
+          statusText: "Not Implemented",
+          headers: response.headers,
+          url: response.url, // Keep that URL, bro!
+          // You can include more properties from the original response here
+        });
+
+        return newResponse;
       }
 
       response.data = data;
