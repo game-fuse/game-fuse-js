@@ -1074,8 +1074,7 @@ class GameFuseUtilities {
           status: 501,
           statusText: "Not Implemented",
           headers: response.headers,
-          url: response.url, // Keep that URL, bro!
-          // You can include more properties from the original response here
+          url: response.url
         });
 
         return newResponse;
