@@ -67,7 +67,7 @@ class GameFuse {
 
     async setUpGameRoutine(gameId, token, callback = undefined, seedStore = false) {
         var body = `game_id=${gameId}&game_token=${token}`;
-        if (seedStore) {
+        if (seedStore == "seedStore") {
             body += "&seed_store=true";
         }
         this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/verify?${body}`);
