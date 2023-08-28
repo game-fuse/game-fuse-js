@@ -1069,11 +1069,16 @@ class GameFuseUtilities {
       const response = await fetch(url, options);
       const data = await response.json();
 
-      if (data && data.error) {
-        response.ok = false
-      }
-
       response.data = data;
       return response;
+    }
+
+
+    static async requestIsOk(response){
+        const data = response.data
+        if (data && data.error) {
+            return false
+        }
+        return response.ok
     }
 }
