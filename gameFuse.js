@@ -95,7 +95,7 @@
         const body = `game_id=${this.id}&game_token=${this.token}`;
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/store_items?${body}`);
 
-        if (response.ok) {
+        if (GameFuseUtilities.requestIsOk(response)) {
             this.Log("GameFuse Downloading Store Items Success");
             this.Log(response.data.store_items)
             this.store = response.data.store_items.map(storeItem => new GameFuseStoreItem(
@@ -138,7 +138,7 @@
             body: formData
         });
 
-        if (response.ok) {
+        if (GameFuseUtilities.requestIsOk(response)) {
             this.Log(`GameFuse Sign In Success: ${email}`);
             GameFuseUser.CurrentUser.setSignedInInternal();
             GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
@@ -148,7 +148,7 @@
             GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
             GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
             GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
-            GameFuseUser.CurrentUser.DownloadAttributes(true, callback); // Chain next request - download users attributes
+            GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
         } else {
             this.Log(`GameFuse Sign In Failure: ${email}`);
             GameFuseUtilities.HandleCallback(response, "User has been signed in successfully", callback);
@@ -228,7 +228,7 @@
                 }
             });
 
-            if (response.ok) {
+            if (GameFuseUtilities.requestIsOk(response)) {
                 GameFuse.Log("GameFuse Get Leaderboard Success: : " + limit.toString());
 
                 const storeItems = response.data.leaderboard_entries;
