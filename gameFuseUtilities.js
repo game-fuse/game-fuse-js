@@ -1,8 +1,13 @@
 ﻿class GameFuseUtilities {
-    static async HandleCallback(response, successString, callback = undefined) {
+    static async HandleCallback(response, responseMessage, callback = undefined, success=true) {
         try {
-
-            if (response.status >= 400) {
+            if (!success){
+                callback(responseMessage,true)
+            }
+            else if (response == undefined) {
+                callback(responseMessage, true)
+            }
+            else if (response.status >= 400) {
                 console.error(`Request (${response.url}) had error: ` + response.statusText);
                 if (callback !== null)
                     callback("An unknown error occurred: " + response.statusText, true);
@@ -17,7 +22,7 @@
                     callback(errorString, true);
             } else {
                 if (callback !== null)
-                    callback(successString, false);
+                    callback(responseMessage, false);
             }
         } catch (error) {
             console.error("response had error: ");
@@ -28,11 +33,10 @@
     }
 
     static RequestIsSuccessful(response) {
-        return (
-            response.status !== 0 &&
-            response.status !== 404 &&
-            response.status !== 500
-        );
+        if (response.data && response.data.error && response.data.error.length > 0){
+            return false;
+        }
+        return response.status.toString()[0] ==  "2"
     }
 
 
@@ -47,10 +51,9 @@
 
     static async requestIsOk(response){
         const data = response.data
-        if (data && data.error) {
+        if (data && data.error && data.error.length > 0) {
             return false
         }
         return response.ok
     }
-
 }

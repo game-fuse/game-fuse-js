@@ -82,7 +82,7 @@ class GameFuse {
             this.downloadStoreItemsPrivate(callback);
         } else {
             this.Log(`GameFuse Setting Up Game Received Request Failure: ${gameId}: ${token}`);
-            GameFuseUtilities.HandleCallback(response, "Game has failed to set up!", callback);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has failed to set up!", callback, false);
         }
     }
 
@@ -95,7 +95,8 @@ class GameFuse {
         const body = `game_id=${this.id}&game_token=${this.token}`;
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/store_items?${body}`);
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
             this.Log("GameFuse Downloading Store Items Success");
             this.Log(response.data.store_items)
             this.store = response.data.store_items.map(storeItem => new GameFuseStoreItem(
@@ -106,10 +107,10 @@ class GameFuse {
                 parseInt(storeItem.id)
             ));
         } else {
-            GameFuseUtilities.HandleCallback(response, "Game has failed to set up!", callback);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has failed to set up!", callback, false);
             this.Log("GameFuse Downloading Store Items Failed");
         }
-        GameFuseUtilities.HandleCallback(response, "Game has been set up!", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has been set up!", callback, true);
     }
 
     static getStoreItems() {
@@ -138,7 +139,8 @@ class GameFuse {
             body: formData
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
             this.Log(`GameFuse Sign In Success: ${email}`);
             GameFuseUser.CurrentUser.setSignedInInternal();
             GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
@@ -151,7 +153,7 @@ class GameFuse {
             GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
         } else {
             this.Log(`GameFuse Sign In Failure: ${email}`);
-            GameFuseUtilities.HandleCallback(response, "User has been signed in successfully", callback);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User has been signed in successfully", callback, true);
         }
     }
 
@@ -195,7 +197,7 @@ class GameFuse {
                 await GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
             } else {
                 console.log("GameFuse Sign Up Failure: " + email);
-                await GameFuseUtilities.HandleCallback(response, "User could not sign up: " + response.error, callback);
+                await GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User could not sign up: " + response.error, callback, false);
             }
         } catch (error) {
             console.error("GameFuse Sign Up Error: " + error);
@@ -228,7 +230,8 @@ class GameFuse {
                 }
             });
 
-            if (GameFuseUtilities.requestIsOk(response)) {
+            const responseOk = await GameFuseUtilities.requestIsOk(response)
+            if (responseOk) {
                 GameFuse.Log("GameFuse Get Leaderboard Success: : " + limit.toString());
 
                 const storeItems = response.data.leaderboard_entries;
@@ -244,10 +247,10 @@ class GameFuse {
                 }
             }
 
-            GameFuseUtilities.HandleCallback(response, "Leaderboard recieved", callback);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Leaderboard recieved", callback, true);
         } catch (error) {
             console.log(error);
-            GameFuseUtilities.HandleCallback(response, error.message, callback);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false);
         }
     }
 
@@ -438,17 +441,18 @@ class GameFuseUser {
           body: JSON.stringify(data)
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Add Credits Success: " + credits.toString());
           this.setCreditsInternal(parseInt(response.data.credits));
-          GameFuseUtilities.HandleCallback(response, "Credits Added!", callback);
+          GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Credits Added!", callback, true);
         } else {
           GameFuse.Log("GameFuseUser Add Credits Failure: " + credits.toString());
-          GameFuseUtilities.HandleCallback(response, "Credits Failed To Add!", callback);
+          GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Credits Failed To Add!", callback, false);
         }
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false);
       }
     }
 
@@ -476,7 +480,8 @@ class GameFuseUser {
           body: JSON.stringify(data)
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Set Credits Success: " + credits.toString());
 
           
@@ -484,10 +489,10 @@ class GameFuseUser {
         } else {
           GameFuse.Log("GameFuseUser Set Credits Failure: " + credits.toString());
         }
-        GameFuseUtilities.HandleCallback(response, "Credits Added!", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Credits Added!", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false);
       }
     }
 
@@ -515,15 +520,16 @@ class GameFuseUser {
           body: JSON.stringify(data)
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Add Score Succcess: " + score.toString());
 
           this.SetScoreInternal(parseInt(response.data.score));
         }
-        GameFuseUtilities.HandleCallback(response, "Score has been added to user", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Score has been added to user", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false);
       }
     }
 
@@ -551,15 +557,16 @@ class GameFuseUser {
           body: JSON.stringify(data)
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Set Score Success: " + score.toString());
 
           this.SetScoreInternal(parseInt(response.data.score));
         }
-        GameFuseUtilities.HandleCallback(response,"Score has been set for user", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined,"Score has been set for user", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -585,9 +592,10 @@ class GameFuseUser {
           }
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Get Attributes Success");
-
+          debugger
           const game_user_attributes = response.data.game_user_attributes;
           this.attributes = {};
           for (const attribute of game_user_attributes) {
@@ -598,12 +606,13 @@ class GameFuseUser {
           GameFuseUtilities.HandleCallback(
             response,
             chainedFromLogin ? "Users have been signed in successfully" : "User attributes have been downloaded",
-            callback
+            callback,
+            true
           );
         }
       } catch (error) {
-        console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        console.log(error) 
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -649,7 +658,8 @@ class GameFuseUser {
           body: JSON.stringify(data)
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Set Attributes Success: " + key);
           this.attributes[key] = value;
           for (const [attributeKey, attributeValue] of Object.entries(this.attributes)) {
@@ -657,10 +667,10 @@ class GameFuseUser {
           }
         }
 
-        GameFuseUtilities.HandleCallback(response,"Attribute has been added to user", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined,"Attribute has been added to user", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -685,7 +695,8 @@ class GameFuseUser {
           }
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Remove Attributes Success: " + key);
 
           const game_user_attributes = response.data.game_user_attributes;
@@ -696,10 +707,10 @@ class GameFuseUser {
           }
         }
 
-        GameFuseUtilities.HandleCallback(response,"Attribute has been removed", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined,"Attribute has been removed", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -724,7 +735,8 @@ class GameFuseUser {
           }
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Download Store Items Success");
 
           const game_user_store_items = response.data.game_user_store_items;
@@ -744,11 +756,12 @@ class GameFuseUser {
         GameFuseUtilities.HandleCallback(
           response,
           chainedFromLogin ? "Users have been signed in successfully" : "User store items have been downloaded",
-          callback
+          callback,
+          true
         );
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -790,7 +803,8 @@ class GameFuseUser {
           body: form
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Purchase Store Items Success: ");
 
 
@@ -809,10 +823,10 @@ class GameFuseUser {
           }
         }
 
-        GameFuseUtilities.HandleCallback(response, "Store Item has been purchased by user", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Store Item has been purchased by user", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -855,7 +869,8 @@ class GameFuseUser {
           }
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Remove Store Item Success: " + storeItemID);
 
           this.setCreditsInternal(parseInt(response.data["credits"]));
@@ -873,10 +888,10 @@ class GameFuseUser {
           }
         }
 
-        GameFuseUtilities.HandleCallback(response, "Store Item has been removed", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Store Item has been removed", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -916,14 +931,15 @@ class GameFuseUser {
           body: form
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Add Leaderboard Entry: " + leaderboardName + ": " + score);
         }
 
-        GameFuseUtilities.HandleCallback(response, "Leaderboard Entry Has Been Added", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Leaderboard Entry Has Been Added", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -955,14 +971,15 @@ class GameFuseUser {
           body: form
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Clear Leaderboard Entry: " + leaderboardName);
         }
 
-        GameFuseUtilities.HandleCallback(response, "Leaderboard Entries Have Been Cleared", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Leaderboard Entries Have Been Cleared", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -1002,7 +1019,8 @@ class GameFuseUser {
           }
         });
 
-        if (GameFuseUtilities.requestIsOk(response)) {
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
           GameFuse.Log("GameFuseUser Get Leaderboard Success: : " + limit.toString());
           GameFuse.Instance.leaderboardEntries = [];
 
@@ -1017,10 +1035,10 @@ class GameFuseUser {
           }
         }
 
-        GameFuseUtilities.HandleCallback(response, "Store Item has been removed", callback);
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Store Item has been removed", callback, true);
       } catch (error) {
         console.log(error)
-        GameFuseUtilities.HandleCallback(response, error.message, callback)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
 
@@ -1028,10 +1046,15 @@ class GameFuseUser {
 
 
 class GameFuseUtilities {
-    static async HandleCallback(response, successString, callback = undefined) {
+    static async HandleCallback(response, responseMessage, callback = undefined, success=true) {
         try {
-
-            if (response.status >= 400) {
+            if (!success){
+                callback(responseMessage,true)
+            }
+            else if (response == undefined) {
+                callback(responseMessage, true)
+            }
+            else if (response.status >= 400) {
                 console.error(`Request (${response.url}) had error: ` + response.statusText);
                 if (callback !== null)
                     callback("An unknown error occurred: " + response.statusText, true);
@@ -1046,7 +1069,7 @@ class GameFuseUtilities {
                     callback(errorString, true);
             } else {
                 if (callback !== null)
-                    callback(successString, false);
+                    callback(responseMessage, false);
             }
         } catch (error) {
             console.error("response had error: ");
@@ -1057,11 +1080,10 @@ class GameFuseUtilities {
     }
 
     static RequestIsSuccessful(response) {
-        return (
-            response.status !== 0 &&
-            response.status !== 404 &&
-            response.status !== 500
-        );
+        if (response.data && response.data.error && response.data.error.length > 0){
+            return false;
+        }
+        return response.status.toString()[0] ==  "2"
     }
 
 
@@ -1076,7 +1098,7 @@ class GameFuseUtilities {
 
     static async requestIsOk(response){
         const data = response.data
-        if (data && data.error) {
+        if (data && data.error && data.error.length > 0) {
             return false
         }
         return response.ok
