@@ -265,7 +265,6 @@
         const responseOk = await GameFuseUtilities.requestIsOk(response)
         if (responseOk) {
           GameFuse.Log("GameFuseUser Get Attributes Success");
-          debugger
           const game_user_attributes = response.data.game_user_attributes;
           this.attributes = {};
           for (const attribute of game_user_attributes) {
