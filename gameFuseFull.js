@@ -269,7 +269,7 @@ class GameFuse {
         if (GameFuse.getGameId() == null) {
             throw new Error("Please set up your game with PainLessAuth.SetUpGame before signing in users");
         }
-        const parameters = "?game_token=" + GameFuse.Instance.getGameToken() + "&game_id=" + GameFuse.Instance.getGameId().toString() + "&email=" + email;
+        const parameters = "?game_token=" + GameFuse.getGameToken() + "&game_id=" + GameFuse.getGameId().toString() + "&email=" + email;
         const url = GameFuse.getBaseURL() + "/games/" + GameFuse.getGameId() + "/forget_password" + parameters;
 
         const response = await GameFuseUtilities.processRequest(url, {
