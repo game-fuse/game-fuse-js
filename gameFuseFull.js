@@ -256,6 +256,38 @@ class GameFuse {
         }
     }
 
+    static sendPasswordResetEmail(email, callback = undefined) {
+        this.Instance.sendPasswordResetEmailPrivate(email, callback);
+    }
+
+    async sendPasswordResetEmailPrivate(email, callback = undefined) {
+        await this.sendPasswordResetEmailRoutine(email, callback);
+    }
+
+    async sendPasswordResetEmailRoutine(email, callback = undefined) {
+        this.Log(`GameFuse Send Password Reset: ${email}`);
+        if (GameFuse.getGameId() == null) {
+            throw new Error("Please set up your game with PainLessAuth.SetUpGame before signing in users");
+        }
+        const parameters = "?game_token=" + GameFuse.Instance.getGameToken() + "&game_id=" + GameFuse.Instance.getGameId().toString() + "&email=" + email;
+        const url = GameFuse.getBaseURL() + "/games/" + GameFuse.getGameId() + "/forget_password" + parameters;
+
+        const response = await GameFuseUtilities.processRequest(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            }
+        });
+
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, undefined, callback);
+        } else {
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : "undefined", "an error occured", callback, false);
+        }
+    }
+
 
 }
 
