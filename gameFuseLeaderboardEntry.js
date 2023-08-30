@@ -1,10 +1,12 @@
 class GameFuseLeaderboardEntry {
-    constructor(username, score, leaderboard_name, extra_attributes, game_user_id) {
+    constructor(username, score, leaderboard_name, extra_attributes, game_user_id, created_at) {
         this.username = username;
         this.score = score;
         this.leaderboard_name = leaderboard_name;
         this.extra_attributes = extra_attributes;
         this.game_user_id = game_user_id;
+        this.created_at = created_at;
+
     }
 
     getUsername() {
@@ -17,6 +19,10 @@ class GameFuseLeaderboardEntry {
 
     getLeaderboardName() {
         return this.leaderboard_name;
+    }
+
+    getTimestamp(){
+        return this.created_at
     }
 
     getExtraAttributes() {

@@ -104,7 +104,8 @@
                 storeItem.category,
                 storeItem.description,
                 parseInt(storeItem.cost),
-                parseInt(storeItem.id)
+                parseInt(storeItem.id),
+                storeItem.icon_url
             ));
         } else {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has failed to set up!", callback, false);
@@ -242,7 +243,8 @@
                         parseInt(storeItem.score),
                         storeItem.leaderboard_name,
                         storeItem.extra_attributes,
-                        parseInt(storeItem.game_user_id)
+                        parseInt(storeItem.game_user_id),
+                        storeItem.created_at
                     ));
                 }
             }

@@ -104,7 +104,8 @@ class GameFuse {
                 storeItem.category,
                 storeItem.description,
                 parseInt(storeItem.cost),
-                parseInt(storeItem.id)
+                parseInt(storeItem.id),
+                storeItem.icon_url
             ));
         } else {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has failed to set up!", callback, false);
@@ -242,7 +243,8 @@ class GameFuse {
                         parseInt(storeItem.score),
                         storeItem.leaderboard_name,
                         storeItem.extra_attributes,
-                        parseInt(storeItem.game_user_id)
+                        parseInt(storeItem.game_user_id),
+                        storeItem["created_at"]
                     ));
                 }
             }
@@ -259,12 +261,14 @@ class GameFuse {
 
 
 class GameFuseLeaderboardEntry {
-    constructor(username, score, leaderboard_name, extra_attributes, game_user_id) {
+    constructor(username, score, leaderboard_name, extra_attributes, game_user_id, created_at) {
         this.username = username;
         this.score = score;
         this.leaderboard_name = leaderboard_name;
         this.extra_attributes = extra_attributes;
         this.game_user_id = game_user_id;
+        this.created_at = created_at;
+
     }
 
     getUsername() {
@@ -277,6 +281,10 @@ class GameFuseLeaderboardEntry {
 
     getLeaderboardName() {
         return this.leaderboard_name;
+    }
+
+    getTimestamp(){
+        return this.created_at
     }
 
     getExtraAttributes() {
@@ -299,12 +307,13 @@ class GameFuseLeaderboardEntry {
 
 
 class GameFuseStoreItem {
-    constructor(name, category, description, cost, id) {
+    constructor(name, category, description, cost, id, icon_url) {
         this.name = name;
         this.category = category;
         this.description = description;
         this.cost = cost;
         this.id = id;
+        this.icon_url = icon_url;
     }
 
     getName() {
@@ -325,6 +334,10 @@ class GameFuseStoreItem {
 
     getId() {
         return this.id;
+    }
+
+    getIconUrl() {
+        return this.icon_url;
     }
 }
 
@@ -747,7 +760,8 @@ class GameFuseUser {
               item.category,
               item.description,
               parseInt(item.cost),
-              parseInt(item.id)
+              parseInt(item.id),
+              item.icon_url
             ));
           }
         }
@@ -817,7 +831,8 @@ class GameFuseUser {
               item["category"],
               item["description"],
               parseInt(item["cost"]),
-              parseInt(item["id"])
+              parseInt(item["id"]),
+              item["icon_url"]
             ));
           }
         }
@@ -882,7 +897,8 @@ class GameFuseUser {
               item["category"],
               item["description"],
               parseInt(item["cost"]),
-              parseInt(item["id"])
+              parseInt(item["id"]),
+              item["icon_url"]
             ));
           }
         }
@@ -1029,7 +1045,8 @@ class GameFuseUser {
               parseInt(storeItem["score"]),
               storeItem["leaderboard_name"],
               storeItem["extra_attributes"],
-              parseInt(storeItem["game_user_id"])
+              parseInt(storeItem["game_user_id"]),
+              storeItem["created_at"]
             ));
           }
         }

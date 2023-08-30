@@ -1,10 +1,11 @@
 ﻿class GameFuseStoreItem {
-    constructor(name, category, description, cost, id) {
+    constructor(name, category, description, cost, id, icon_url) {
         this.name = name;
         this.category = category;
         this.description = description;
         this.cost = cost;
         this.id = id;
+        this.icon_url = icon_url;
     }
 
     getName() {
@@ -25,5 +26,9 @@
 
     getId() {
         return this.id;
+    }
+
+    getIconUrl() {
+        return this.icon_url;
     }
 }

@@ -417,7 +417,8 @@
               item.category,
               item.description,
               parseInt(item.cost),
-              parseInt(item.id)
+              parseInt(item.id),
+              item.icon_url
             ));
           }
         }
@@ -487,7 +488,8 @@
               item["category"],
               item["description"],
               parseInt(item["cost"]),
-              parseInt(item["id"])
+              parseInt(item["id"]),
+              item["icon_url"]
             ));
           }
         }
@@ -552,7 +554,8 @@
               item["category"],
               item["description"],
               parseInt(item["cost"]),
-              parseInt(item["id"])
+              parseInt(item["id"]),
+              item["icon_url"]
             ));
           }
         }
@@ -699,7 +702,8 @@
               parseInt(storeItem["score"]),
               storeItem["leaderboard_name"],
               storeItem["extra_attributes"],
-              parseInt(storeItem["game_user_id"])
+              parseInt(storeItem["game_user_id"]),
+              storeItem["created_at"]
             ));
           }
         }
