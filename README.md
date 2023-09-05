@@ -4,7 +4,7 @@ Use Game Fuse Javascript in your JS Game project to easily add authenticaion, us
 ## Getting Started
 The first step of integrating GameFuse with your project, is to make an account at https://www.gamefuse.co.
 After creating your account, add your first game and note the ID and API Token.
-With this setup, you can now connect via your game client. 
+With this setup, you can now connect via your game client. Check the most recently updated docs at: https://www.gamefuse.co/pages/docs.
 
 ### PixiJs, BabylonJs, etc
 If your game engine has an editable HTML file, you can paste the following in the <head> tag of the HTML document:

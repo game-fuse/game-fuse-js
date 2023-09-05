@@ -86,6 +86,36 @@ class GameFuse {
         }
     }
 
+    static fetchGameVariables(gameId, token, callback = undefined, extraData={}) {
+        this.Instance.fetchGameVariablesPrivate(gameId, token, callback, extraData);
+    }
+
+    fetchGameVariablesPrivate(gameId, token, callback = undefined, extraData={}) {
+        this.fetchGameVariablesRoutine(gameId, token, callback, extraData);
+    }
+
+    async fetchGameVariablesRoutine(gameId, token, callback = undefined, extraData={}) {
+        var body = `game_id=${gameId}&game_token=${token}`;
+        if (extraData.seedStore == "seedStore") {
+            body += "&seed_store=true";
+        }
+        this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/fetch_game_variables?${body}`);
+        const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/fetch_game_variables?${body}`);
+
+        if (!response.data.error) {
+            this.Log(`GameFuse Setting Up Game Received Request Success: ${gameId}: ${token}`);
+            this.id = response.data.id.toString();
+            this.name = response.data.name;
+            this.description = response.data.description;
+            this.token = response.data.token;
+            this.game_variables = response.data.game_variables
+            this.downloadStoreItemsPrivate(callback);
+        } else {
+            this.Log(`GameFuse Setting Up Game Received Request Failure: ${gameId}: ${token}`);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has failed to set up!", callback, false);
+        }
+    }
+
     downloadStoreItemsPrivate(callback = undefined) {
         this.downloadStoreItemsRoutine(callback);
     }
