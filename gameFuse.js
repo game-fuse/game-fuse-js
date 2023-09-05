@@ -42,6 +42,10 @@
         return this.Instance.verboseLogging;
     }
 
+    static getGameVariables() {
+        return this.Instance.game_variables;
+    }
+
     static setVerboseLogging(_verboseLogging) {
         this.Instance.verboseLogging = _verboseLogging;
     }

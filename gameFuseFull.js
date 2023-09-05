@@ -38,6 +38,10 @@ class GameFuse {
         return this.Instance.token;
     }
 
+    static getGameVariables() {
+        return this.Instance.game_variables;
+    }
+
     static getVerboseLogging() {
         return this.Instance.verboseLogging;
     }
@@ -79,6 +83,7 @@ class GameFuse {
             this.name = response.data.name;
             this.description = response.data.description;
             this.token = response.data.token;
+            this.game_variables = response.data.game_variables
             this.downloadStoreItemsPrivate(callback);
         } else {
             this.Log(`GameFuse Setting Up Game Received Request Failure: ${gameId}: ${token}`);
