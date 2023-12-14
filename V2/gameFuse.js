@@ -78,7 +78,7 @@
         this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/verify?${body}`);
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/verify?${body}`);
 
-        if (!response.data.error) {
+        if (!response.data) {
             this.Log(`GameFuse Setting Up Game Received Request Success: ${gameId}: ${token}`);
             this.id = response.data.id.toString();
             this.name = response.data.name;
@@ -108,7 +108,7 @@
         this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/fetch_game_variables?${body}`);
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/fetch_game_variables?${body}`);
 
-        if (!response.data.error) {
+        if (GameFuseUtilities.RequestIsSuccessful(response)) {
             this.Log(`GameFuse Setting Up Game Received Request Success: ${gameId}: ${token}`);
             this.id = response.data.id.toString();
             this.name = response.data.name;
@@ -175,7 +175,6 @@
             method: "POST",
             body: formData
         });
-
         const responseOk = await GameFuseUtilities.requestIsOk(response)
         if (responseOk) {
             this.Log(`GameFuse Sign In Success: ${email}`);

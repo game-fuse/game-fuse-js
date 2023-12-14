@@ -5,6 +5,7 @@
                 callback(responseMessage,true)
             }
             else if (response == undefined) {
+
                 callback(responseMessage, true)
             }
             else if (response.status >= 400) {
@@ -34,15 +35,17 @@
         return response.status.toString()[0] ===  "2"
     }
 
-
     static async processRequest(url, options) {
       const response = await fetch(url, options);
-      const data = await response.json();
-
+      var data = "";
+      if (GameFuseUtilities.RequestIsSuccessful(response)){
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
       response.data = data;
       return response;
     }
-
 
     static async requestIsOk(response){
         if (response.status.toString()[0] !==  "2") {

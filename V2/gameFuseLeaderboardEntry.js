@@ -42,3 +42,4 @@ class GameFuseLeaderboardEntry {
         return dictionary;
     }
 }
+
