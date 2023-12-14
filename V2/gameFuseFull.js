@@ -19,7 +19,8 @@ class GameFuse {
     }
 
     static getBaseURL() {
-        return "https://gamefuse.co/api/v1";
+        // return "http://localhost/api/v2";
+        return "https://gamefuse.co/api/v2";
     }
 
     static getGameId() {
@@ -38,12 +39,12 @@ class GameFuse {
         return this.Instance.token;
     }
 
-    static getGameVariables() {
-        return this.Instance.game_variables;
-    }
-
     static getVerboseLogging() {
         return this.Instance.verboseLogging;
+    }
+
+    static getGameVariables() {
+        return this.Instance.game_variables;
     }
 
     static setVerboseLogging(_verboseLogging) {
@@ -70,7 +71,7 @@ class GameFuse {
     }
 
     async setUpGameRoutine(gameId, token, callback = undefined, extraData={}) {
-        var body = `game_id=${gameId}&game_token=${token}`;
+        var body = `client_from_library=js&game_id=${gameId}&game_token=${token}`;
         if (extraData.seedStore == "seedStore") {
             body += "&seed_store=true";
         }
@@ -279,7 +280,7 @@ class GameFuse {
                         storeItem.leaderboard_name,
                         storeItem.extra_attributes,
                         parseInt(storeItem.game_user_id),
-                        storeItem["created_at"]
+                        storeItem.created_at
                     ));
                 }
             }
@@ -290,6 +291,7 @@ class GameFuse {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false);
         }
     }
+
 
     static sendPasswordResetEmail(email, callback = undefined) {
         this.Instance.sendPasswordResetEmailPrivate(email, callback);
@@ -325,7 +327,6 @@ class GameFuse {
 
 
 }
-
 
 class GameFuseLeaderboardEntry {
     constructor(username, score, leaderboard_name, extra_attributes, game_user_id, created_at) {
@@ -371,7 +372,6 @@ class GameFuseLeaderboardEntry {
         return dictionary;
     }
 }
-
 
 class GameFuseStoreItem {
     constructor(name, category, description, cost, id, icon_url) {
@@ -421,6 +421,7 @@ class GameFuseUser {
         this.credits = credits;
         this.id = id;
         this.attributes = attributes;
+        this.dirtyAttributes = {};
         this.purchasedStoreItems = purchasedStoreItems;
     }   
 
@@ -711,6 +712,26 @@ class GameFuseUser {
       }
     }
 
+    setAttributeLocal(key, val){
+      if (this.attributes.hasOwnProperty(key)) {
+        delete this.attributes[key];
+      }
+      if (this.dirtyAttributes.hasOwnProperty(key)) {
+        delete this.dirtyAttributes[key];
+      }
+      this.attributes[key] = val;
+      this.dirtyAttributes[key] = val;
+    }
+
+    async syncLocalAttributes(callback=undefined)
+    {
+      this.setAttributes(this.attributes, callback, true);
+    }
+
+    getDirtyAttributes(){
+      return this.dirtyAttributes;
+    }
+
     async setAttribute(key, value, callback=undefined) {
       try {
         GameFuse.Log("GameFuseUser Set Attributes: " + key);
@@ -752,6 +773,57 @@ class GameFuseUser {
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
+
+    async setAttributes(newAttributes, callback = undefined, isFromSync = false) {
+
+      try {
+
+        if (GameFuse.getGameId() == null) {
+          throw new GameFuseException(
+            "Please set up your game with GameFuse.SetUpGame before modifying users"
+          );
+        }
+
+        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/add_game_user_attribute";
+        const data = {
+          authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken()
+        };
+
+        const preparedAttributes = Object.entries(this.attributes).map(([key, value]) => ({ key, value }));
+        const body = JSON.stringify({"attributes": preparedAttributes, authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken()});
+
+        const response = await GameFuseUtilities.processRequest(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken(),
+          },
+          body: body,
+        });
+
+        const responseOk = await GameFuseUtilities.requestIsOk(response);
+        if (responseOk) {
+
+          for (const [key, value] of Object.entries(newAttributes)) {
+            this.attributes[key] = value;
+          }
+
+          for (const [attributeKey, attributeValue] of Object.entries(this.attributes)) {
+            console.log(attributeKey + "," + attributeValue);
+          }
+
+          if (isFromSync){
+              this.dirtyAttributes = {}
+          }
+        }
+
+        GameFuseUtilities.HandleCallback(response, "Attribute has been added to user", callback, true);
+      } catch (error) {
+        console.log(error);
+        GameFuseUtilities.HandleCallback(undefined, error.message, callback, false);
+      }
+    }
+
 
     async removeAttribute(key, callback=undefined) {
       try {
@@ -1126,7 +1198,6 @@ class GameFuseUser {
     }
 
 }
-
 
 class GameFuseUtilities {
     static async HandleCallback(response, responseMessage, callback = undefined, success=true) {
