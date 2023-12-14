@@ -8,13 +8,11 @@
                 callback(responseMessage, true)
             }
             else if (response.status >= 400) {
-                console.error(`Request (${response.url}) had error: ` + response.statusText);
+                console.error(`Request (${response.url}) had error: ` + response.data);
                 if (callback !== null)
-                    callback("An unknown error occurred: " + response.statusText, true);
+                    callback("An unknown error occurred: " + response.data, true);
             } else if (response.status === 299) {
-                const data = response.data
-                let errorString = data.error;
-
+                var errorString = response.data
                 if (errorString.includes("has already been taken"))
                     errorString = "Username or email already taken";
 
@@ -33,10 +31,7 @@
     }
 
     static RequestIsSuccessful(response) {
-        if (response.data && response.data.error && response.data.error.length > 0){
-            return false;
-        }
-        return response.status.toString()[0] ==  "2"
+        return response.status.toString()[0] ===  "2"
     }
 
 
@@ -50,8 +45,7 @@
 
 
     static async requestIsOk(response){
-        const data = response.data
-        if (data && data.error && data.error.length > 0) {
+        if (response.status.toString()[0] !==  "2") {
             return false
         }
         return response.ok
