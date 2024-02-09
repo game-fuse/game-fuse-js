@@ -105,7 +105,6 @@ class GameFuseFriendRequestExample {
         let friends = GameFuseUser.CurrentUser.getFriends();
         incomingFriendRequests = GameFuseUser.CurrentUser.getIncomingFriendRequests();
         let outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
-        // debugger;
         if(friends.length !== 1 || incomingFriendRequests.length !== 0 || outgoingFriendRequests.length !== 0){
             throw('ERROR: There were not exactly 0 friend requests and 1 friend in the data for user1')
         }
@@ -126,6 +125,34 @@ class GameFuseFriendRequestExample {
         outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
         if(friends.length !== 0 || incomingFriendRequests.length !== 0 || outgoingFriendRequests.length !== 0){
             throw('ERROR: There were not exactly 0 friend requests and 0 friends in the data for user3')
+        }
+
+        // TODO:
+        console.log('user3 requests a friendship of user2')
+        await new Promise((resolve, reject) => {
+            GameFuseUser.CurrentUser.sendFriendRequest(self.user2name, (message, hasError) => {
+                resolve(message)
+            });
+        });
+
+        console.log("check that user3's friend request is in their outgoing friend requests")
+        outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
+        let friendRequestToDelete = outgoingFriendRequests[0]
+        if(outgoingFriendRequests.length !== 1 || friendRequestToDelete.getOtherUser().getUsername() !== self.user2name){
+            throw("User3's outgoing friend request list is not as it should be")
+        }
+
+        console.log("user3 deletes that friend request")
+        await new Promise((resolve, reject) => {
+            friendRequestToDelete.deleteFriendRequest((message, hasError) => {
+                resolve(message)
+            });
+        });
+
+        console.log("check that there are no longer any friend requests in user3's outgoing friend request list");
+        outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
+        if(outgoingFriendRequests.length !== 0){
+            throw("There are friend requests in user3's outgoing friend requests list that should not be there!!")
         }
 
         console.log("signIn user2")
@@ -156,9 +183,8 @@ class GameFuseFriendRequestExample {
 
         console.log("make sure user2 has 0 friends")
         friends = GameFuseUser.CurrentUser.getFriends();
-
         if(friends.length !== 0){
-            throw('ERROR: There were not exactly 0 friends in the data for user3')
+            throw('ERROR: There were not exactly 0 friends in the data for user2')
         }
 
         console.log("signIn user1")

@@ -94,13 +94,10 @@ class GameFuseUser {
         return this.credits;
     }
 
-
-    // TODO: this should return GameFuseUser objects
     getFriends() {
         return this.friends;
     }
 
-    // TODO: this should return GameFuseFriendRequest objects
     getIncomingFriendRequests() {
         return this.incomingFriendRequests;
     }
@@ -408,17 +405,18 @@ class GameFuseUser {
                 throw('You can only remove other users from the friends list!')
             }
             GameFuse.Log("GameFuseFriendRequest unfriend user with username " + this.getUsername());
-            const url = GameFuse.getBaseURL() + "/friendships/unfriend"
+            const url = GameFuse.getBaseURL() + "/unfriend"
+            const data = {
+                authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
+                user_id: this.getID()
+            }
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
-                body: JSON.stringify({
-                    authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() ,
-                    user_id: this.getID()
-                })
+                body: JSON.stringify(data)
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
