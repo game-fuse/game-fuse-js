@@ -1,4 +1,5 @@
-﻿class GameFuse {
+﻿// V2
+class GameFuse {
     static request;
 
     constructor() {
@@ -19,8 +20,8 @@
     }
 
     static getBaseURL() {
-        // return "http://localhost/api/v2";
-        return "https://gamefuse.co/api/v2";
+        return "http://localhost/api/v2";
+        // return "https://gamefuse.co/api/v2";
     }
 
     static getGameId() {
@@ -78,7 +79,8 @@
         this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/verify?${body}`);
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/verify?${body}`);
 
-        if (!response.data) {
+        let requestIsOk = await GameFuseUtilities.requestIsOk(response)
+        if (requestIsOk) {
             this.Log(`GameFuse Setting Up Game Received Request Success: ${gameId}: ${token}`);
             this.id = response.data.id.toString();
             this.name = response.data.name;
@@ -178,6 +180,8 @@
         const responseOk = await GameFuseUtilities.requestIsOk(response)
         if (responseOk) {
             this.Log(`GameFuse Sign In Success: ${email}`);
+
+            GameFuseUser.resetCurrentUser();
             GameFuseUser.CurrentUser.setSignedInInternal();
             GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
             GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));
@@ -186,6 +190,7 @@
             GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
             GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
             GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
+            GameFuseUser.CurrentUser.setFriendshipData(response.data.friends, response.data.incoming_friend_requests, response.data.outgoing_friend_requests);
             GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
         } else {
             this.Log(`GameFuse Sign In Failure: ${email}`);
@@ -222,6 +227,7 @@
             if (GameFuseUtilities.RequestIsSuccessful(response)) {
                 console.log("GameFuse Sign Up Success: " + email);
 
+                GameFuseUser.resetCurrentUser();
                 GameFuseUser.CurrentUser.setSignedInInternal();
                 GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
                 GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));

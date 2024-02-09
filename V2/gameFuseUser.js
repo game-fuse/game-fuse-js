@@ -1,7 +1,8 @@
-﻿class GameFuseUser { 
-
+﻿// V2
+class GameFuseUser {
     constructor(signedIn = false, numberOfLogins = 0, lastLogin = undefined, authenticationToken = "",
-        username = "", score = 0, credits = 0, id = 0, attributes = {}, purchasedStoreItems = []) {
+        username = "", score = 0, credits = 0, id = 0, attributes = {}, purchasedStoreItems = [],
+        friendshipId = undefined, isOtherUser = false) {
         this.signedIn = signedIn;
         this.numberOfLogins = numberOfLogins;
         this.lastLogin = lastLogin;
@@ -13,6 +14,11 @@
         this.attributes = attributes;
         this.dirtyAttributes = {};
         this.purchasedStoreItems = purchasedStoreItems;
+        this.friends = [];
+        this.outgoingFriendRequests = []; // only the ones that you've sent
+        this.incomingFriendRequests = []; // only the ones that you need to respond to
+        this.isOtherUser = isOtherUser;
+        this.friendshipId = friendshipId;
     }   
 
     static get CurrentUser() {
@@ -20,6 +26,10 @@
             this._instance = new GameFuseUser();
         }
         return this._instance;
+    }
+
+    static resetCurrentUser() {
+        this._instance = new GameFuseUser();
     }
 
     // instance setters
@@ -84,6 +94,29 @@
         return this.credits;
     }
 
+
+    // TODO: this should return GameFuseUser objects
+    getFriends() {
+        return this.friends;
+    }
+
+    // TODO: this should return GameFuseFriendRequest objects
+    getIncomingFriendRequests() {
+        return this.incomingFriendRequests;
+    }
+
+    getOutgoingFriendRequests() {
+        return this.outgoingFriendRequests;
+    }
+
+    getIsOtherUser() {
+        return this.isOtherUser;
+    }
+
+    getFriendshipId() {
+        return this.friendshipId;
+    }
+
     getID() {
         return this.id;
     }
@@ -107,7 +140,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // this one not working
           },
           body: JSON.stringify(data)
         });
@@ -284,6 +317,133 @@
         console.log(error) 
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
+    }
+
+    setFriendshipData(friendJson, incomingRequestJson, outgoingRequestJson) {
+        const processUserData = (friendData) => {
+            const attributes = {};
+            for (const attribute of friendData.game_user_attributes) {
+                attributes[attribute.key] = attribute.value;
+            }
+
+            const purchasedStoreItems = friendData.game_user_store_items.map(item =>
+                new GameFuseStoreItem(
+                    item.name,
+                    item.category,
+                    item.description,
+                    parseInt(item.cost),
+                    parseInt(item.id),
+                    item.icon_url
+                )
+            );
+
+            return new GameFuseUser(
+                false,
+                undefined,
+                undefined,
+                undefined,
+                friendData.username,
+                friendData.score,
+                friendData.credits,
+                friendData.id,
+                attributes,
+                purchasedStoreItems,
+                friendData.friendship_id,
+                true
+            );
+        };
+
+        if(friendJson !== undefined) {
+            this.friends = friendJson.map(friendData => processUserData(friendData));
+        }
+        if(incomingRequestJson !== undefined) {
+            this.incomingFriendRequests = incomingRequestJson.map(friendReqData => new GameFuseFriendRequest(friendReqData.friendship_id, friendReqData.requested_at, processUserData(friendReqData)))
+        }
+        if(outgoingRequestJson !== undefined) {
+            this.outgoingFriendRequests = outgoingRequestJson.map(friendReqData => new GameFuseFriendRequest(friendReqData.friendship_id, friendReqData.requested_at, processUserData(friendReqData)))
+        }
+    }
+
+    async sendFriendRequest(username, callback= undefined) {
+        try {
+            GameFuse.Log("GameFuseUser sending friend request");
+
+            const url = GameFuse.getBaseURL() + "/friendships"
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // this one not working
+                },
+                body: JSON.stringify({ username: username, authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() })
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response)
+            if (responseOk) {
+                GameFuse.Log("GameFuseUser Get Friends Success");
+                this.setFriendshipData(response.data.friends, response.data.incoming_friend_requests, response.data.outgoing_friend_requests);
+                GameFuseUtilities.HandleCallback(
+                    response,
+                    "friend request has been sent successfully",
+                    callback,
+                    true
+                );
+            } else {
+                GameFuseUtilities.HandleCallback(
+                    response,
+                    response.data, // message from the API
+                    callback,
+                    false
+                );
+            }
+        } catch (error) {
+            console.log(error)
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
+    }
+
+    async unfriend(callback) {
+        try {
+            if(!this.getIsOtherUser()){
+                throw('You can only remove other users from the friends list!')
+            }
+            GameFuse.Log("GameFuseFriendRequest unfriend user with username " + this.getUsername());
+            const url = GameFuse.getBaseURL() + "/friendships/unfriend"
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                },
+                body: JSON.stringify({
+                    authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() ,
+                    user_id: this.getID()
+                })
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+
+            if (responseOk) {
+                GameFuse.Log("GameFuseUser Unfriending Success");
+                GameFuseUser.CurrentUser.setFriendshipData(response.data.friends, response.data.incoming_friend_requests, response.data.outgoing_friend_requests);
+                GameFuseUtilities.HandleCallback(
+                    response,
+                    `friendship with user ${this.getUsername()} has been deleted successfully`,
+                    callback,
+                    true
+                );
+            } else {
+                GameFuseUtilities.HandleCallback(
+                    response,
+                    response.data, // message from the API
+                    callback,
+                    false
+                );
+            }
+        } catch (error) {
+            console.log(error);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
     }
 
     getAttributes() {
