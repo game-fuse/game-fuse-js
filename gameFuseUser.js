@@ -716,46 +716,4 @@
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
-
-    async getFriendRequests(callback= undefined) {
-        try {
-            GameFuse.Log("GameFuseUser get Attributes");
-
-            if (GameFuse.getGameId() == null) {
-                throw new GameFuseException(
-                    "Please set up your game with GameFuse.SetUpGame before modifying users"
-                );
-            }
-
-            const parameters = "?authentication_token=" + GameFuseUser.CurrentUser.getAuthenticationToken();
-            const url = GameFuse.getBaseURL() + "/users/" + this.id + "/game_user_attributes" + parameters;
-
-            const response = await GameFuseUtilities.processRequest(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
-                }
-            });
-
-            const responseOk = await GameFuseUtilities.requestIsOk(response)
-            if (responseOk) {
-                // loop through friendships_ive_requested, create a new GameFuseFriendRequest for each item with iSentRequest = true, add them
-
-
-                // loop through friendships_requested_of_me, create a new GameFuseFriendRequest for each item with iSentRequest = false
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    chainedFromLogin ? "Users have been signed in successfully" : "User attributes have been downloaded",
-                    callback,
-                    true
-                );
-            }
-        } catch (error) {
-            console.log(error)
-            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
-        }
-    }
-
 }
