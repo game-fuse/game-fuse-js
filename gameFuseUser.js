@@ -12,8 +12,6 @@
         this.id = id;
         this.attributes = attributes;
         this.purchasedStoreItems = purchasedStoreItems;
-        this.friendRequestsIveSent = [];
-        this.friendRequestsIveReceived = [];
     }   
 
     static get CurrentUser() {
