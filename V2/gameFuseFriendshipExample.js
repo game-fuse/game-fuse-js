@@ -204,8 +204,9 @@ class GameFuseFriendRequestExample {
     }
 }
 
-const example = new GameFuseFriendRequestExample("2c20999d-7cb9-4b87-b111-8294e7163869", "1");
+const example = new GameFuseFriendRequestExample(ENV.gameToken, ENV.gameId);
 
 example.start()
 
+//
 

@@ -2,7 +2,7 @@
 class GameFuseUser {
     constructor(signedIn = false, numberOfLogins = 0, lastLogin = undefined, authenticationToken = "",
         username = "", score = 0, credits = 0, id = 0, attributes = {}, purchasedStoreItems = [],
-        friendshipId = undefined, isOtherUser = false) {
+        leaderboardEntries = [], friendshipId = undefined, isOtherUser = false) {
         this.signedIn = signedIn;
         this.numberOfLogins = numberOfLogins;
         this.lastLogin = lastLogin;
@@ -14,6 +14,7 @@ class GameFuseUser {
         this.attributes = attributes;
         this.dirtyAttributes = {};
         this.purchasedStoreItems = purchasedStoreItems;
+        this.leaderboardEntries = leaderboardEntries;
         this.friends = [];
         this.outgoingFriendRequests = []; // only the ones that you've sent
         this.incomingFriendRequests = []; // only the ones that you need to respond to
@@ -108,6 +109,10 @@ class GameFuseUser {
 
     getIsOtherUser() {
         return this.isOtherUser;
+    }
+
+    getLeaderboardEntries() {
+        return this.leaderboardEntries;
     }
 
     getFriendshipId() {
@@ -296,11 +301,7 @@ class GameFuseUser {
         const responseOk = await GameFuseUtilities.requestIsOk(response)
         if (responseOk) {
           GameFuse.Log("GameFuseUser Get Attributes Success");
-          const game_user_attributes = response.data.game_user_attributes;
-          this.attributes = {};
-          for (const attribute of game_user_attributes) {
-            this.attributes[attribute.key] = attribute.value;
-          }
+          this.attributes = GameFuseUtilities.formatUserAttributes(response.data.game_user_attributes);
           await this.downloadStoreItems(chainedFromLogin, callback);
         } else {
           GameFuseUtilities.HandleCallback(
@@ -317,11 +318,12 @@ class GameFuseUser {
     }
 
     setFriendshipData(friendJson, incomingRequestJson, outgoingRequestJson) {
+        if(this.getID() !== GameFuseUser.CurrentUser.getID()){
+            throw('this method can only be called on the CurrentUser object')
+        }
         const processUserData = (friendData) => {
-            const attributes = {};
-            for (const attribute of friendData.game_user_attributes) {
-                attributes[attribute.key] = attribute.value;
-            }
+
+            let attributes = GameFuseUtilities.formatUserAttributes(friendData.game_user_attributes)
 
             const purchasedStoreItems = friendData.game_user_store_items.map(item =>
                 new GameFuseStoreItem(
@@ -334,17 +336,33 @@ class GameFuseUser {
                 )
             );
 
+            let username = friendData.username;
+            let userId = friendData.id;
+
+            // construct leaderboard entries here. Might need to add createdAt of the leaderboard entry.
+            const leaderboardEntries = friendData.leaderboard_entries.map(entry => {
+                new GameFuseLeaderboardEntry(
+                    username,
+                    entry.score,
+                    entry.leaderboard_name,
+                    entry.extra_attributes,
+                    userId,
+                    entry.created_at
+                )
+            })
+
             return new GameFuseUser(
                 false,
                 undefined,
                 undefined,
                 undefined,
-                friendData.username,
+                username,
                 friendData.score,
                 friendData.credits,
-                friendData.id,
+                userId,
                 attributes,
                 purchasedStoreItems,
+                leaderboardEntries,
                 friendData.friendship_id,
                 true
             );
@@ -598,12 +616,7 @@ class GameFuseUser {
         if (responseOk) {
           GameFuse.Log("GameFuseUser Remove Attributes Success: " + key);
 
-          const game_user_attributes = response.data.game_user_attributes;
-
-          this.attributes = {}
-          for (const attribute of game_user_attributes) {
-            attributes.set(attribute.key, attribute.value);
-          }
+          this.attributes = GameFuseUtilities.formatUserAttributes(response.data.game_user_attributes);
         }
 
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined,"Attribute has been removed", callback, true);

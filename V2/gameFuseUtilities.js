@@ -53,4 +53,12 @@
         }
         return response.ok
     }
+
+    static formatUserAttributes(attributesArray){
+        const attributes = {};
+        for (const attribute of attributesArray) {
+            attributes[attribute.key] = attribute.value;
+        }
+        return attributes
+    }
 }
