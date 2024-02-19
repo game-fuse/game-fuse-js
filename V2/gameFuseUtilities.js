@@ -61,4 +61,85 @@
         }
         return attributes
     }
+
+    static convertJsonTo(modelName, data){
+        return this[`convertJsonTo${modelName}`](data)
+    }
+
+    static convertJsonToGameFuseUser(userData) {
+        if(userData === undefined){
+            return undefined;
+        }
+
+        let attributes = this.formatUserAttributes(userData.game_user_attributes)
+
+        const purchasedStoreItems = userData.game_user_store_items.map(item =>
+            new GameFuseStoreItem(
+                item.name,
+                item.category,
+                item.description,
+                parseInt(item.cost),
+                parseInt(item.id),
+                item.icon_url
+            )
+        );
+
+        let username = userData.username;
+        let userId = userData.id;
+
+        const leaderboardEntries = userData.leaderboard_entries.map(entry => {
+            new GameFuseLeaderboardEntry(
+                username,
+                entry.score,
+                entry.leaderboard_name,
+                entry.extra_attributes,
+                userId,
+                entry.created_at
+            )
+        })
+
+        return new GameFuseUser(
+            false,
+            undefined,
+            undefined,
+            undefined,
+            username,
+            userData.score,
+            userData.credits,
+            userId,
+            attributes,
+            purchasedStoreItems,
+            leaderboardEntries,
+            userData.friendship_id,
+            true
+        );
+    }
+
+    static convertJsonToGameFuseFriendRequest(friendReqData){
+        return new GameFuseFriendRequest(
+            friendReqData.friendship_id,
+            friendReqData.requested_at,
+            GameFuseUser.UserCache[friendReqData.id] ??= this.convertJsonTo('GameFuseUser', friendReqData)
+        )
+    }
+
+    static convertJsonToGameFuseChat(chatData) {
+        return new GameFuseChat(
+            chatData.id,
+            chatData.participants.map(userData => {
+                return GameFuseUser.UserCache[userData.id] ??= GameFuseUtilities.convertJsonTo('GameFuseUser', userData);
+            }),
+            chatData.messages.map(messageData => {
+                return this.convertJsonTo('GameFuseMessage', messageData);
+            }),
+        );
+    }
+
+    static convertJsonToGameFuseMessage(messageData) {
+        return new GameFuseMessage(
+            messageData.text,
+            messageData.created_at,
+            GameFuseUser.UserCache[messageData.user_id] // the participants' user object will already be in the cache since participants get built/added before the messages.
+        );
+    }
 }

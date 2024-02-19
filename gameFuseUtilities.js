@@ -48,7 +48,6 @@
       return response;
     }
 
-
     static async requestIsOk(response){
         const data = response.data
         if (data && data.error && data.error.length > 0) {

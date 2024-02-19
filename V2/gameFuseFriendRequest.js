@@ -9,7 +9,7 @@ class GameFuseFriendRequest {
         return this.otherUser;
     }
 
-    getFriendshipId() {
+    getFriendshipID() {
         return this.friendshipId;
     }
 
@@ -20,7 +20,7 @@ class GameFuseFriendRequest {
     async processFriendRequest(acceptedOrRejected, callback) {
         try {
             GameFuse.Log(`GameFuseFriendRequest Accept Request for user with username ${this.getOtherUser().getUsername()}`);
-            const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipId();
+            const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipID();
             const data = {
                 friendship: {
                     status: acceptedOrRejected
@@ -38,10 +38,14 @@ class GameFuseFriendRequest {
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
-
             if (responseOk) {
                 GameFuse.Log("GameFuseUser Get Friends Success");
-                GameFuseUser.CurrentUser.setFriendshipData(response.data.friends, response.data.incoming_friend_requests, response.data.outgoing_friend_requests);
+                // remove from friend requests
+                GameFuseUser.CurrentUser.incomingFriendRequests = GameFuseUser.CurrentUser.incomingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID());
+                if(acceptedOrRejected === 'accepted'){
+                    // add the user to the friends list.
+                    GameFuseUser.CurrentUser.friends.push(this.getOtherUser()); // otherUser is a reference to the UserCache object
+                }
                 GameFuseUtilities.HandleCallback(
                     response,
                     `friend request has been ${acceptedOrRejected} successfully`,
@@ -73,7 +77,7 @@ class GameFuseFriendRequest {
     async deleteFriendRequest(callback) {
         try {
             GameFuse.Log(`GameFuseFriendRequest Delete Friend Request with the user of username ${this.getOtherUser().getUsername()}`);
-            const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipId();
+            const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipID();
 
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
@@ -88,7 +92,8 @@ class GameFuseFriendRequest {
 
             if (responseOk) {
                 GameFuse.Log("GameFuseUser Delete Friend Request Success");
-                GameFuseUser.CurrentUser.setFriendshipData(response.data.friends, response.data.incoming_friend_requests, response.data.outgoing_friend_requests);
+                // remove this friendship from the friend requests list
+                GameFuseUser.CurrentUser.outgoingFriendRequests = GameFuseUser.CurrentUser.outgoingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID())
                 GameFuseUtilities.HandleCallback(
                     response,
                     `friend request has been deleted successfully`,

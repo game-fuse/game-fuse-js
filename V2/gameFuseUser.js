@@ -20,6 +20,7 @@ class GameFuseUser {
         this.incomingFriendRequests = []; // only the ones that you need to respond to
         this.isOtherUser = isOtherUser;
         this.friendshipId = friendshipId;
+        this.chats = [];
     }   
 
     static get CurrentUser() {
@@ -31,6 +32,17 @@ class GameFuseUser {
 
     static resetCurrentUser() {
         this._instance = new GameFuseUser();
+    }
+
+    static get UserCache() {
+        if (!this._userCache) {
+            this._userCache = {}
+        }
+        return this._userCache;
+    }
+
+    static resetUserCache() {
+        this._userCache = {}
     }
 
     // instance setters
@@ -115,8 +127,12 @@ class GameFuseUser {
         return this.leaderboardEntries;
     }
 
-    getFriendshipId() {
+    getFriendshipID() {
         return this.friendshipId;
+    }
+
+    getChats() {
+        return this.chats;
     }
 
     getID() {
@@ -317,71 +333,55 @@ class GameFuseUser {
       }
     }
 
-    setFriendshipData(friendJson, incomingRequestJson, outgoingRequestJson) {
+    setRelationalDataInternal(apiData){
         if(this.getID() !== GameFuseUser.CurrentUser.getID()){
             throw('this method can only be called on the CurrentUser object')
         }
-        const processUserData = (friendData) => {
 
-            let attributes = GameFuseUtilities.formatUserAttributes(friendData.game_user_attributes)
+        let friendsData = apiData.friends;
+        let incomingFriendReqData = apiData.incoming_friend_requests;
+        let outgoingFriendReqData = apiData.outgoing_friend_requests
+        let chatsData = apiData.chats;
+        // TODO: let clansData = apiData.clans;
 
-            const purchasedStoreItems = friendData.game_user_store_items.map(item =>
-                new GameFuseStoreItem(
-                    item.name,
-                    item.category,
-                    item.description,
-                    parseInt(item.cost),
-                    parseInt(item.id),
-                    item.icon_url
-                )
-            );
+        if(friendsData !== undefined) {
+            this.friends = friendsData.map(friendData => {
+                return GameFuseUser.UserCache[friendData.id] ??= GameFuseUtilities.convertJsonTo('GameFuseUser', friendData)
+            });
+        }
 
-            let username = friendData.username;
-            let userId = friendData.id;
-
-            // construct leaderboard entries here. Might need to add createdAt of the leaderboard entry.
-            const leaderboardEntries = friendData.leaderboard_entries.map(entry => {
-                new GameFuseLeaderboardEntry(
-                    username,
-                    entry.score,
-                    entry.leaderboard_name,
-                    entry.extra_attributes,
-                    userId,
-                    entry.created_at
-                )
+        if(incomingFriendReqData !== undefined) {
+            this.incomingFriendRequests = incomingFriendReqData.map(friendReqData => {
+                return GameFuseUtilities.convertJsonTo('GameFuseFriendRequest', friendReqData);
             })
-
-            return new GameFuseUser(
-                false,
-                undefined,
-                undefined,
-                undefined,
-                username,
-                friendData.score,
-                friendData.credits,
-                userId,
-                attributes,
-                purchasedStoreItems,
-                leaderboardEntries,
-                friendData.friendship_id,
-                true
-            );
-        };
-
-        if(friendJson !== undefined) {
-            this.friends = friendJson.map(friendData => processUserData(friendData));
         }
-        if(incomingRequestJson !== undefined) {
-            this.incomingFriendRequests = incomingRequestJson.map(friendReqData => new GameFuseFriendRequest(friendReqData.friendship_id, friendReqData.requested_at, processUserData(friendReqData)))
+
+        if(outgoingFriendReqData !== undefined) {
+            this.outgoingFriendRequests = outgoingFriendReqData.map(friendReqData => {
+                return GameFuseUtilities.convertJsonTo('GameFuseFriendRequest', friendReqData);
+            })
         }
-        if(outgoingRequestJson !== undefined) {
-            this.outgoingFriendRequests = outgoingRequestJson.map(friendReqData => new GameFuseFriendRequest(friendReqData.friendship_id, friendReqData.requested_at, processUserData(friendReqData)))
+
+        if(chatsData !== undefined){
+            this.chats = chatsData.map(chatData => {
+                return GameFuseUtilities.convertJsonTo('GameFuseChat', chatData)
+            });
         }
     }
 
-    async sendFriendRequest(username, callback= undefined) {
+    async sendFriendRequest(usernameOrID, callback= undefined) {
         try {
             GameFuse.Log("GameFuseUser sending friend request");
+
+            let params;
+            let uniqueIdentifierType = typeof usernameOrID;
+            if(uniqueIdentifierType === 'string'){
+                params = { username: usernameOrID };
+            } else if (uniqueIdentifierType === 'number'){
+                params = { user_id: usernameOrID };
+            } else {
+                throw('first parameter to sendFriendRequest must be a username (string) or a user ID (number)');
+            }
 
             const url = GameFuse.getBaseURL() + "/friendships"
             const response = await GameFuseUtilities.processRequest(url, {
@@ -390,13 +390,23 @@ class GameFuseUser {
                     'Content-Type': 'application/json',
                     'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // this one not working
                 },
-                body: JSON.stringify({ username: username, authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() })
+                body: JSON.stringify({ ...params, authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() })
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response)
             if (responseOk) {
                 GameFuse.Log("GameFuseUser Get Friends Success");
-                this.setFriendshipData(response.data.friends, response.data.incoming_friend_requests, response.data.outgoing_friend_requests);
+
+                // reset this in the user cache in case the place they're getting the friend request user data from is not complete
+                let userObject = GameFuseUtilities.convertJsonTo('GameFuseUser', response.data);
+                GameFuseUser.UserCache[userObject.getID()] = userObject;
+                this.outgoingFriendRequests.push(
+                    new GameFuseFriendRequest(
+                        response.data.friendship_id,
+                        response.data.requested_at,
+                        GameFuseUser.UserCache[userObject.getID()]
+                    )
+                );
                 GameFuseUtilities.HandleCallback(
                     response,
                     "friend request has been sent successfully",
@@ -441,7 +451,8 @@ class GameFuseUser {
 
             if (responseOk) {
                 GameFuse.Log("GameFuseUser Unfriending Success");
-                GameFuseUser.CurrentUser.setFriendshipData(response.data.friends, response.data.incoming_friend_requests, response.data.outgoing_friend_requests);
+                // delete the friend from the friends array. Leave them in the UserCache in case they have a chat with them...
+                GameFuseUser.CurrentUser.friends = GameFuseUser.CurrentUser.friends.filter(user => user.getID() !== this.getID())
                 GameFuseUtilities.HandleCallback(
                     response,
                     `friendship with user ${this.getUsername()} has been deleted successfully`,
@@ -458,6 +469,90 @@ class GameFuseUser {
             }
         } catch (error) {
             console.log(error);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
+    }
+
+    // get chat objects from API, passing a "page number" to get chats other than the most recent 25.
+    async fetchChats(page = 1) {
+
+    }
+
+    // recipients => array of user objects with whom the chat should be.
+    // Can also just be a user object.
+    // Can also be a clan. Or some other type of "group"
+    async createChat(recipients, firstMessage, callback = undefined){
+        try {
+            recipients = Array.isArray(recipients) ? recipients : [recipients]
+
+            let userIds, usernames;
+            if (recipients.every(recipient => typeof (recipient) === 'number')) {
+                userIds = recipients;
+            } else if (recipients.every(recipient => recipient instanceof GameFuseUser)) {
+                // strong parameters for rails app
+                userIds = recipients.map(user => user.getID());
+            } else if (recipients.every(recipient => typeof (recipient) === 'string')) {
+                usernames = recipients;
+            } else {
+                throw('All recipients passed must be of the same type: IDs, usernames, or GameFuseUser objects')
+            }
+
+            let body;
+            if(userIds !== undefined){
+                // use IDs. First append the current user.
+                userIds.push(this.getID());
+                body = {
+                    text: firstMessage,
+                    user_ids: userIds,
+                }
+            } else {
+                // use usernames. First append the current user.
+                usernames.push(this.getUsername());
+                body = {
+                    text: firstMessage,
+                    usernames: usernames
+                }
+            }
+
+            body['authentication_token'] = GameFuseUser.CurrentUser.getAuthenticationToken();
+
+            const url = GameFuse.getBaseURL() + "/chats"
+
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                },
+                body: JSON.stringify(body)
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+
+            if (responseOk) {
+                GameFuse.Log("GameFuseUser createChat Success");
+                // Add or replace the chat to the array, regardless of whether it's an existing chat or a new chat,
+                // since the new chat object from the API will be the most up-to-date version.
+                let chatObject = GameFuseUtilities.convertJsonTo('GameFuseChat', response.data);
+                this.chats = this.chats.filter(chat => chat.getID() !== chatObject.getID());
+                this.chats.push(chatObject);
+
+                GameFuseUtilities.HandleCallback(
+                    response,
+                    `Chat and message added!`,
+                    callback,
+                    true
+                );
+            } else {
+                GameFuseUtilities.HandleCallback(
+                    response,
+                    response.data, // message from the API
+                    callback,
+                    false
+                );
+            }
+        } catch (error) {
+            console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
     }
