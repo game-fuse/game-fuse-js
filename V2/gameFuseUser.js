@@ -346,7 +346,7 @@ class GameFuseUser {
 
         if(friendsData !== undefined) {
             this.friends = friendsData.map(friendData => {
-                return GameFuseUser.UserCache[friendData.id] ??= GameFuseUtilities.convertJsonTo('GameFuseUser', friendData)
+                return GameFuseUtilities.convertJsonTo('GameFuseUser', friendData)
             });
         }
 
@@ -369,12 +369,6 @@ class GameFuseUser {
         }
     }
 
-    // way1
-    //someUserObject.sendFriendRequest();
-
-    // way2
-    //GameFuseFriendRequest.create('noobslayer')
-
     async sendFriendRequest(callback= undefined) {
         if(!this.getIsOtherUser()){
             throw('Cannot send a friend request to yourself, must send to another user!')
@@ -388,12 +382,15 @@ class GameFuseUser {
             if(!this.getIsOtherUser()){
                 throw('You can only remove other users from the friends list, not yourself!')
             }
+
             GameFuse.Log("GameFuseFriendRequest unfriend user with username " + this.getUsername());
+
             const url = GameFuse.getBaseURL() + "/unfriend"
             const data = {
                 authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
                 user_id: this.getID()
             }
+
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
                 headers: {
@@ -407,8 +404,10 @@ class GameFuseUser {
 
             if (responseOk) {
                 GameFuse.Log("GameFuseUser Unfriending Success");
+
                 // delete the friend from the friends array. Leave them in the UserCache in case they have a chat with them...
                 GameFuseUser.CurrentUser.friends = GameFuseUser.CurrentUser.friends.filter(user => user.getID() !== this.getID())
+
                 GameFuseUtilities.HandleCallback(
                     response,
                     `friendship with user ${this.getUsername()} has been deleted successfully`,
@@ -453,7 +452,7 @@ class GameFuseUser {
             if (responseOk) {
                 GameFuse.Log("GameFuseChat getOlderChats success");
 
-                // loop over the new chats and add them to the chats array, at the end of the array
+                // loop over the new chats and add them to the chats array, at the end of the array since they are older.
                 response.data.forEach(chatJson => {
                     this.chats.push(GameFuseUtilities.convertJsonTo('GameFuseChat', chatJson));
                 })

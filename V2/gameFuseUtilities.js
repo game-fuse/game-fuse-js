@@ -67,10 +67,6 @@
     }
 
     static convertJsonToGameFuseUser(userData) {
-        if(userData === undefined){
-            return undefined;
-        }
-
         let attributes = this.formatUserAttributes(userData.game_user_attributes)
 
         const purchasedStoreItems = userData.game_user_store_items.map(item =>
@@ -98,7 +94,7 @@
             )
         })
 
-        return new GameFuseUser(
+        let userObj = new GameFuseUser(
             false,
             undefined,
             undefined,
@@ -113,13 +109,17 @@
             userData.friendship_id,
             true
         );
+
+        GameFuseUser.UserCache[userData.id] = userObj;
+
+        return userObj;
     }
 
     static convertJsonToGameFuseFriendRequest(friendReqData){
         return new GameFuseFriendRequest(
             friendReqData.friendship_id,
             friendReqData.requested_at,
-            GameFuseUser.UserCache[friendReqData.id] ??= this.convertJsonTo('GameFuseUser', friendReqData)
+            this.convertJsonTo('GameFuseUser', friendReqData)
         )
     }
 
@@ -127,7 +127,7 @@
         return new GameFuseChat(
             chatData.id,
             chatData.participants.map(userData => {
-                return GameFuseUser.UserCache[userData.id] ??= GameFuseUtilities.convertJsonTo('GameFuseUser', userData);
+                return GameFuseUtilities.convertJsonTo('GameFuseUser', userData);
             }),
             chatData.messages.map(messageData => {
                 return this.convertJsonTo('GameFuseMessage', messageData);

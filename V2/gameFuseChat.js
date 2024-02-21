@@ -169,7 +169,7 @@ class GameFuseChat {
             if (responseOk) {
                 GameFuse.Log("GameFuseChat getOlderMessages success");
 
-                // loop over these older messages and add them to the end of the messages array
+                // loop over these older messages and add them to the end of the messages array, since they are older.
                 response.data.forEach(messageJson => {
                     this.messages.push(GameFuseUtilities.convertJsonTo('GameFuseMessage', messageJson));
                 })

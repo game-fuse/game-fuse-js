@@ -1,7 +1,7 @@
 class GameFuseTestingUtilities {
-    static async signUpUser(userNumber = 1){
+    static async signUpUser(){
         let random = Math.floor(Math.random() * 1000000000000);
-        let username = `user${userNumber}${random}`;
+        let username = `user${random}`;
         let email = `${username}@mundo.com`;
 
         await new Promise((resolve, reject) => {
