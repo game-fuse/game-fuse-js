@@ -30,7 +30,7 @@ class GameFuseExampleMessages {
 
         // 3. Send another message to the chat, check that the data is there
         let chat = chats[0];
-        await Test.takeActionWithCallback('send another message (reply to the chat)', chat, 'reply', 'I am replying :)');
+        await Test.takeActionWithCallback('send another message (reply to the chat)', chat, 'sendMessage', 'I am replying :)');
         chats = currentUser().getChats();
         Test.expect(chats.length, 1, 'Should still have 1 chat');
         chat = chats[0];
@@ -65,7 +65,7 @@ class GameFuseExampleMessages {
         // 7. create 30 messages with user3
         console.log('About to send 30 messages to the group chat (spamming much??)')
         for(let i = 0; i < 30; i++) {
-            await Test.takeActionWithCallback(`message ${i+1}`, groupChat, 'reply', `This is message number ${i+1}`);
+            await Test.takeActionWithCallback(`message ${i+1}`, groupChat, 'sendMessage', `This is message number ${i+1}`);
         }
 
         Test.expect(currentUser().getChats()[1].getMessages().length, 31, 'the group chat should now have 31 messages (because it was being added to after each message)');

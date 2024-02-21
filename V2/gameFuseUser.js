@@ -453,7 +453,7 @@ class GameFuseUser {
             if (responseOk) {
                 GameFuse.Log("GameFuseChat getOlderChats success");
 
-                // loop over the new chats and add them to the chats array
+                // loop over the new chats and add them to the chats array, at the end of the array
                 response.data.forEach(chatJson => {
                     this.chats.push(GameFuseUtilities.convertJsonTo('GameFuseChat', chatJson));
                 })

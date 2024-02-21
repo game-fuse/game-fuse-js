@@ -37,7 +37,7 @@
 
     static async processRequest(url, options) {
       const response = await fetch(url, options);
-      var data = "";
+      let data;
       if (GameFuseUtilities.RequestIsSuccessful(response)){
         data = await response.json();
       } else {

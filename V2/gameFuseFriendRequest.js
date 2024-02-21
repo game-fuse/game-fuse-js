@@ -42,7 +42,8 @@ class GameFuseFriendRequest {
                 // reset this in the user cache in case the place they're getting the friend request user data from is not complete
                 let userObject = GameFuseUtilities.convertJsonTo('GameFuseUser', response.data);
                 GameFuseUser.UserCache[userObject.getID()] = userObject;
-                GameFuseUser.CurrentUser.outgoingFriendRequests.push(
+                // add this friend request to the beginning of the friend requests array
+                GameFuseUser.CurrentUser.outgoingFriendRequests.unshift(
                     new GameFuseFriendRequest(
                         response.data.friendship_id,
                         response.data.requested_at,
@@ -143,8 +144,8 @@ class GameFuseFriendRequest {
                 // remove from friend requests
                 GameFuseUser.CurrentUser.incomingFriendRequests = GameFuseUser.CurrentUser.incomingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID());
                 if(acceptedOrRejected === 'accepted'){
-                    // add the user to the friends list.
-                    GameFuseUser.CurrentUser.friends.push(this.getOtherUser()); // otherUser is a reference to the UserCache object
+                    // add the user to the friends list, at the beginning
+                    GameFuseUser.CurrentUser.friends.unshift(this.getOtherUser()); // otherUser is a reference to the UserCache object
                 }
                 GameFuseUtilities.HandleCallback(
                     response,

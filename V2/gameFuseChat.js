@@ -17,52 +17,51 @@ class GameFuseChat {
         return this.participants;
     }
 
-    // recipients => array of user objects with whom the chat should be.
-    // Can also just be a user object.
-    // Can also be a clan. Or some other type of "group"
+    // Use this method to create a new chat object (although it will add to the existing chat appropriately if the chat already exists).
+    // recipients => array of either usernames or user objects with whom the chat should be, or a clan (coming soon).
+    // TODO: can also be a clan. Or some other type of "group". this will come once we have clans.
+    //      it will be an instance method on clan, called sendMessage, which will call this method with Clan as the recipient.
     static async sendMessage(recipients, firstMessage, callback = undefined){
         try {
             recipients = Array.isArray(recipients) ? recipients : [recipients]
 
-            // TODO: should we allow all these different ways to pass the recipients? Or should we force them to send it as one specific way?
-            let userIds, usernames;
-            if (recipients.every(recipient => typeof (recipient) === 'number')) {
-                userIds = recipients;
-            } else if (recipients.every(recipient => recipient instanceof GameFuseUser)) {
-                userIds = recipients.map(user => user.getID());
-            } else if (recipients.every(recipient => typeof (recipient) === 'string')) {
+            let usernames, clanId;
+            if (recipients.every(recipient => typeof (recipient) === 'string')) {
                 usernames = recipients;
+            } else if (recipients.every(recipient => recipient instanceof GameFuseUser)) {
+                usernames = recipients.map(user => user.getID());
+            // } else if (recipients.every(recipient => recipient instanceof GameFuseClan)) {
+            //     TODO: THIS BLOCK COMING SOON
+            //     clanId = recipients[0].getId();
             } else {
                 throw('All recipients passed must be of the same type: IDs, usernames, or GameFuseUser objects')
             }
 
             let body;
-            let currentUser = GameFuseUser.CurrentUser;
-            if(userIds !== undefined){
-                // use IDs. First append the current user.
-                userIds.push(currentUser.getID());
-                body = {
-                    text: firstMessage,
-                    user_ids: userIds,
-                }
-            } else {
-                // use usernames. First append the current user.
-                usernames.push(currentUser.getUsername());
-                body = {
-                    text: firstMessage,
-                    usernames: usernames
-                }
+            // if(usernames !== undefined){
+            // for a specific user or group of users
+            usernames = [...new Set(usernames, GameFuseUser.CurrentUser.getUsername())]; // add current user's username and avoid duplicates
+            body = {
+                text: firstMessage,
+                usernames: usernames,
             }
+            // TODO: this block coming soon
+            // } else {
+            //     // for a clan.
+            //     body = {
+            //         text: firstMessage,
+            //         clan_id: clanId
+            //     }
+            // }
 
             body['authentication_token'] = GameFuseUser.CurrentUser.getAuthenticationToken();
 
-            const url = GameFuse.getBaseURL() + "/chats"
-
+            const url = GameFuse.getBaseURL() + "/chats";
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // TODO: fix this.
                 },
                 body: JSON.stringify(body)
             });
@@ -70,12 +69,13 @@ class GameFuseChat {
             const responseOk = await GameFuseUtilities.requestIsOk(response);
 
             if (responseOk) {
-                GameFuse.Log("GameFuseUser createChat Success");
-                // Add or replace the chat to the array, regardless of whether it's an existing chat or a new chat,
-                // since the new chat object from the API will be the most up-to-date version.
+                GameFuse.Log("GameFuseUser sendMessage Success");
+
+                // Add (or replace) the chat to the beginning of the chats array (newest chats go first)
+                // Even if it's an existing chat, we want to replace it since the new chat data from the API will be the most up-to-date version.
                 let chatObject = GameFuseUtilities.convertJsonTo('GameFuseChat', response.data);
                 currentUser.chats = currentUser.chats.filter(chat => chat.getID() !== chatObject.getID());
-                currentUser.chats.push(chatObject);
+                currentUser.chats.unshift(chatObject);
 
                 GameFuseUtilities.HandleCallback(
                     response,
@@ -97,8 +97,8 @@ class GameFuseChat {
         }
     }
 
-    // use this method to send a message to chat
-    async reply(messageText, callback = undefined){
+    // use this method to send a message to an existing chat
+    async sendMessage(messageText, callback = undefined){
         try {
             if(messageText === undefined || typeof messageText !== 'string' || messageText.length === 0){
                 throw('message text must be a string of at least one character!')
@@ -116,7 +116,7 @@ class GameFuseChat {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // TODO: not working.
                 },
                 body: JSON.stringify(body)
             });
@@ -124,9 +124,9 @@ class GameFuseChat {
             const responseOk = await GameFuseUtilities.requestIsOk(response);
 
             if (responseOk) {
-                GameFuse.Log("GameFuseChat reply success");
-                // add the message to the chat object messages array
-                this.messages.push(GameFuseUtilities.convertJsonTo('GameFuseMessage', response.data));
+                GameFuse.Log("GameFuseChat sendMessage success");
+                // add the message to the beginning of the chat object messages array (newest messages go first)
+                this.messages.unshift(GameFuseUtilities.convertJsonTo('GameFuseMessage', response.data));
                 GameFuseUtilities.HandleCallback(
                     response,
                     `Message sent!`,
@@ -168,7 +168,7 @@ class GameFuseChat {
             if (responseOk) {
                 GameFuse.Log("GameFuseChat getOlderMessages success");
 
-                // loop over the new messages and add them to the messages array
+                // loop over these older messages and add them to the end of the messages array
                 response.data.forEach(messageJson => {
                     this.messages.push(GameFuseUtilities.convertJsonTo('GameFuseMessage', messageJson));
                 })
