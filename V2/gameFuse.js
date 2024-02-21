@@ -262,14 +262,14 @@ class GameFuse {
                 throw new GameFuseException("Please set up your game with GameFuse.SetUpGame before modifying users");
             }
 
-            const parameters = "?authentication_token=" + GameFuseUser.CurrentUser.getAuthenticationToken() + "&limit=" + limit.toString() + "&one_per_user=" + onePerUser.toString() + "&leaderboard_name=" + LeaderboardName.toString();
+            const parameters = "?limit=" + limit.toString() + "&one_per_user=" + onePerUser.toString() + "&leaderboard_name=" + LeaderboardName.toString();
             const url = GameFuse.getBaseURL() + "/games/" + GameFuse.getGameId() + "/leaderboard_entries" + parameters;
 
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 }
             });
 
@@ -319,7 +319,7 @@ class GameFuse {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
             }
         });
 

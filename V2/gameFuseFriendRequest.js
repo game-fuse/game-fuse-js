@@ -31,9 +31,9 @@ class GameFuseFriendRequest {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // this one not working
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
-                body: JSON.stringify({ username: username, authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() })
+                body: JSON.stringify({ username: username })
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response)
@@ -75,9 +75,8 @@ class GameFuseFriendRequest {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
-                },
-                body: JSON.stringify({ authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() })
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                }
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
@@ -126,15 +125,14 @@ class GameFuseFriendRequest {
             const data = {
                 friendship: {
                     status: acceptedOrRejected
-                },
-                authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken()
+                }
             };
 
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify(data)
             });

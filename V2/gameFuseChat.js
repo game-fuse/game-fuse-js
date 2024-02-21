@@ -55,14 +55,12 @@ class GameFuseChat {
             //     }
             // }
 
-            body['authentication_token'] = GameFuseUser.CurrentUser.getAuthenticationToken();
-
             const url = GameFuse.getBaseURL() + "/chats";
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // TODO: fix this.
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify(body)
             });
@@ -110,14 +108,13 @@ class GameFuseChat {
                     chat_id: this.getID(),
                     text: messageText
                 },
-                authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken()
             }
             const url = GameFuse.getBaseURL() + "/messages";
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // TODO: not working.
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify(body)
             });
@@ -155,12 +152,12 @@ class GameFuseChat {
                 throw('page parameter must be a number of 2 or more! page 1 comes back with the default data on sign in.');
             }
 
-            const url = GameFuse.getBaseURL() + `/messages/page/${page}?chat_id=${this.getID()}&authentication_token=${GameFuseUser.CurrentUser.getAuthenticationToken()}`;
+            const url = GameFuse.getBaseURL() + `/messages/page/${page}?chat_id=${this.getID()}`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // TODO: not working
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 }
             });
 

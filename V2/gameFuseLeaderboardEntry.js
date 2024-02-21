@@ -49,14 +49,13 @@ class GameFuseLeaderboardEntry {
     //     try {
     //         GameFuse.Log("GameFuseUser get user profile");
     //
-    //         const parameters = `?authentication_token=${GameFuseUser.CurrentUser.getAuthenticationToken()}`;
     //         const url = GameFuse.getBaseURL() + "/users/" + gameUserId + parameters;
     //
     //         const response = await GameFuseUtilities.processRequest(url, {
     //             method: 'GET',
     //             headers: {
     //                 'Content-Type': 'application/json',
-    //                 'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+    //                 'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
     //             }
     //         });
     //

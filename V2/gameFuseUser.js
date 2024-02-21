@@ -149,18 +149,14 @@ class GameFuseUser {
         }
 
         const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/add_credits";
-        const data = {
-          authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
-          credits: credits
-        };
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // this one not working
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({credits: credits})
         });
 
         const responseOk = await GameFuseUtilities.requestIsOk(response)
@@ -188,18 +184,14 @@ class GameFuseUser {
         }
 
         const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/set_credits";
-        const data = {
-          authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
-          credits: credits
-        };
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({credits: credits})
         });
 
         const responseOk = await GameFuseUtilities.requestIsOk(response)
@@ -228,18 +220,14 @@ class GameFuseUser {
         }
 
         const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/add_score";
-        const data = {
-          authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
-          score: score
-        };
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({score: score})
         });
 
         const responseOk = await GameFuseUtilities.requestIsOk(response)
@@ -265,18 +253,14 @@ class GameFuseUser {
         }
 
         const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/set_score";
-        const data = {
-          authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
-          score: score
-        };
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({score: score})
         });
 
         const responseOk = await GameFuseUtilities.requestIsOk(response)
@@ -303,14 +287,12 @@ class GameFuseUser {
           );
         }
 
-        const parameters = "?authentication_token=" + GameFuseUser.CurrentUser.getAuthenticationToken();
-        const url = GameFuse.getBaseURL() + "/users/" + this.id + "/game_user_attributes" + parameters;
-
+        const url = GameFuse.getBaseURL() + "/users/" + this.id + "/game_user_attributes"
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+              'Content-Type': 'application/json',
+              'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           }
         });
 
@@ -387,7 +369,6 @@ class GameFuseUser {
 
             const url = GameFuse.getBaseURL() + "/unfriend"
             const data = {
-                authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
                 user_id: this.getID()
             }
 
@@ -395,7 +376,7 @@ class GameFuseUser {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify(data)
             });
@@ -438,12 +419,12 @@ class GameFuseUser {
                 throw ('Page parameter must be a number that is 2 or greater!')
             }
 
-            const url = GameFuse.getBaseURL() + `/chats/page/${page}?authentication_token=${GameFuseUser.CurrentUser.getAuthenticationToken()}`;
+            const url = GameFuse.getBaseURL() + `/chats/page/${page}`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // TODO: not working
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 }
             });
 
@@ -533,7 +514,6 @@ class GameFuseUser {
 
         const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/add_game_user_attribute";
         const data = {
-          authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken(),
           key: key,
           value: value
         };
@@ -542,7 +522,7 @@ class GameFuseUser {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
           body: JSON.stringify(data)
         });
@@ -574,18 +554,15 @@ class GameFuseUser {
         }
 
         const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/add_game_user_attribute";
-        const data = {
-          authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken()
-        };
 
         const preparedAttributes = Object.entries(this.attributes).map(([key, value]) => ({ key, value }));
-        const body = JSON.stringify({"attributes": preparedAttributes, authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken()});
+        const body = JSON.stringify({"attributes": preparedAttributes });
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken(),
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken(),
           },
           body: body,
         });
@@ -624,14 +601,13 @@ class GameFuseUser {
           );
         }
 
-        const parameters = "?authentication_token=" + GameFuseUser.CurrentUser.getAuthenticationToken() + "&game_user_attribute_key=" + key;
-        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/remove_game_user_attributes" + parameters;
+        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/remove_game_user_attributes" + `?game_user_attribute_key=${key}`;
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           }
         });
 
@@ -659,14 +635,12 @@ class GameFuseUser {
           );
         }
 
-        const parameters = "?authentication_token=" + GameFuseUser.CurrentUser.getAuthenticationToken();
-        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/game_user_store_items" + parameters;
-
+        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/game_user_store_items";
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           }
         });
 
@@ -725,7 +699,6 @@ class GameFuseUser {
         }
 
         const form = new FormData();
-        form.append("authentication_token", GameFuseUser.CurrentUser.getAuthenticationToken());
         form.append("store_item_id", storeItemId.toString());
 
         const url =
@@ -734,7 +707,7 @@ class GameFuseUser {
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
           body: form
         });
@@ -786,9 +759,7 @@ class GameFuseUser {
         }
 
         const parameters =
-          "?authentication_token=" +
-          GameFuseUser.CurrentUser.getAuthenticationToken() +
-          "&store_item_id=" +
+          "?store_item_id=" +
           storeItemID +
           "&reimburse=" +
           reimburseUser.toString();
@@ -802,7 +773,7 @@ class GameFuseUser {
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'GET',
           headers: {
-            'authentication_token':GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token':GameFuseUser.CurrentUser.getAuthenticationToken()
           }
         });
 
@@ -854,7 +825,6 @@ class GameFuseUser {
         const extraAttributesJson = `{${extraAttributesList.join(", ")}}`;
 
         const form = new FormData();
-        form.append("authentication_token", GameFuseUser.CurrentUser.getAuthenticationToken());
         form.append("leaderboard_name", leaderboardName);
         form.append("extra_attributes", extraAttributesJson);
         form.append("score", score);
@@ -864,7 +834,7 @@ class GameFuseUser {
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
           body: form
         });
@@ -896,7 +866,6 @@ class GameFuseUser {
         }
 
         const form = new FormData();
-        form.append("authentication_token", GameFuseUser.CurrentUser.getAuthenticationToken());
         form.append("leaderboard_name", leaderboardName);
 
         const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/clear_my_leaderboard_entries";
@@ -904,7 +873,7 @@ class GameFuseUser {
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           },
           body: form
         });
@@ -936,9 +905,7 @@ class GameFuseUser {
         }
 
         const parameters =
-          "?authentication_token=" +
-          GameFuseUser.CurrentUser.getAuthenticationToken() +
-          "&limit=" +
+          "?limit=" +
           limit.toString() +
           "&one_per_user=" +
           onePerUser.toString();
@@ -953,7 +920,7 @@ class GameFuseUser {
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'GET',
           headers: {
-            'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
           }
         });
 
