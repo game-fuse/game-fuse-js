@@ -1,6 +1,6 @@
 class GameFuseTestingUtilities {
     static async signUpUser(userNumber = 1){
-        let random = Math.floor(Math.random() * 10000);
+        let random = Math.floor(Math.random() * 1000000000000);
         let username = `user${userNumber}${random}`;
         let email = `${username}@mundo.com`;
 
@@ -13,7 +13,6 @@ class GameFuseTestingUtilities {
         return [username, email, GameFuseUser.CurrentUser.getID()]
     }
 
-    // TODO: handle the not equal case more gracefully
     static expect(thing1, thing2, thingWeAreChecking) {
         if(thing1 !== thing2){
             throw(`The following expectation failed: ${thingWeAreChecking}`);
@@ -23,16 +22,16 @@ class GameFuseTestingUtilities {
     }
 
     // Use this for a normal action that doesn't need a callback
-    static takeAction(action, obj, method, args){
+    static takeAction(action, obj, method, ...args){
         console.log(action)
         return obj[method](...args)
     }
 
     // Use this for an action that requires a callback inside of it
-    static async takeActionWithCallback(action, obj, method, args){
+    static async takeActionWithCallback(action, obj, method, ...args){
         return await new Promise((resolve, reject) => {
             args.push((message, _hasError) => { resolve(message) })
-            this.takeAction(action, obj, method, args)
+            this.takeAction(action, obj, method, ...args)
         });
     }
 

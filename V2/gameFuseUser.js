@@ -369,68 +369,24 @@ class GameFuseUser {
         }
     }
 
-    async sendFriendRequest(usernameOrID, callback= undefined) {
-        try {
-            GameFuse.Log("GameFuseUser sending friend request");
+    // way1
+    //someUserObject.sendFriendRequest();
 
-            let params;
-            let uniqueIdentifierType = typeof usernameOrID;
-            if(uniqueIdentifierType === 'string'){
-                params = { username: usernameOrID };
-            } else if (uniqueIdentifierType === 'number'){
-                params = { user_id: usernameOrID };
-            } else {
-                throw('first parameter to sendFriendRequest must be a username (string) or a user ID (number)');
-            }
+    // way2
+    //GameFuseFriendRequest.create('noobslayer')
 
-            const url = GameFuse.getBaseURL() + "/friendships"
-            const response = await GameFuseUtilities.processRequest(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // this one not working
-                },
-                body: JSON.stringify({ ...params, authentication_token: GameFuseUser.CurrentUser.getAuthenticationToken() })
-            });
-
-            const responseOk = await GameFuseUtilities.requestIsOk(response)
-            if (responseOk) {
-                GameFuse.Log("GameFuseUser Get Friends Success");
-
-                // reset this in the user cache in case the place they're getting the friend request user data from is not complete
-                let userObject = GameFuseUtilities.convertJsonTo('GameFuseUser', response.data);
-                GameFuseUser.UserCache[userObject.getID()] = userObject;
-                this.outgoingFriendRequests.push(
-                    new GameFuseFriendRequest(
-                        response.data.friendship_id,
-                        response.data.requested_at,
-                        GameFuseUser.UserCache[userObject.getID()]
-                    )
-                );
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    "friend request has been sent successfully",
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
-            }
-        } catch (error) {
-            console.log(error)
-            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+    async sendFriendRequest(callback= undefined) {
+        if(!this.getIsOtherUser()){
+            throw('Cannot send a friend request to yourself, must send to another user!')
         }
+
+        return GameFuseFriendRequest.send(this.getUsername(), callback);
     }
 
     async unfriend(callback) {
         try {
             if(!this.getIsOtherUser()){
-                throw('You can only remove other users from the friends list!')
+                throw('You can only remove other users from the friends list, not yourself!')
             }
             GameFuse.Log("GameFuseFriendRequest unfriend user with username " + this.getUsername());
             const url = GameFuse.getBaseURL() + "/unfriend"
@@ -474,72 +430,37 @@ class GameFuseUser {
     }
 
     // get chat objects from API, passing a "page number" to get chats other than the most recent 25.
-    async fetchChats(page = 1) {
-
-    }
-
-    // recipients => array of user objects with whom the chat should be.
-    // Can also just be a user object.
-    // Can also be a clan. Or some other type of "group"
-    async createChat(recipients, firstMessage, callback = undefined){
+    async getOlderChats(page = 2, callback = undefined) {
         try {
-            recipients = Array.isArray(recipients) ? recipients : [recipients]
-
-            let userIds, usernames;
-            if (recipients.every(recipient => typeof (recipient) === 'number')) {
-                userIds = recipients;
-            } else if (recipients.every(recipient => recipient instanceof GameFuseUser)) {
-                // strong parameters for rails app
-                userIds = recipients.map(user => user.getID());
-            } else if (recipients.every(recipient => typeof (recipient) === 'string')) {
-                usernames = recipients;
-            } else {
-                throw('All recipients passed must be of the same type: IDs, usernames, or GameFuseUser objects')
+            if (this.getIsOtherUser()) {
+                throw ('Cannot get older chats for other users')
+            }
+            if (typeof page !== 'number' || page < 2) {
+                throw ('Page parameter must be a number that is 2 or greater!')
             }
 
-            let body;
-            if(userIds !== undefined){
-                // use IDs. First append the current user.
-                userIds.push(this.getID());
-                body = {
-                    text: firstMessage,
-                    user_ids: userIds,
-                }
-            } else {
-                // use usernames. First append the current user.
-                usernames.push(this.getUsername());
-                body = {
-                    text: firstMessage,
-                    usernames: usernames
-                }
-            }
-
-            body['authentication_token'] = GameFuseUser.CurrentUser.getAuthenticationToken();
-
-            const url = GameFuse.getBaseURL() + "/chats"
-
+            const url = GameFuse.getBaseURL() + `/chats/page/${page}?authentication_token=${GameFuseUser.CurrentUser.getAuthenticationToken()}`;
             const response = await GameFuseUtilities.processRequest(url, {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
-                },
-                body: JSON.stringify(body)
+                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken() // TODO: not working
+                }
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
 
             if (responseOk) {
-                GameFuse.Log("GameFuseUser createChat Success");
-                // Add or replace the chat to the array, regardless of whether it's an existing chat or a new chat,
-                // since the new chat object from the API will be the most up-to-date version.
-                let chatObject = GameFuseUtilities.convertJsonTo('GameFuseChat', response.data);
-                this.chats = this.chats.filter(chat => chat.getID() !== chatObject.getID());
-                this.chats.push(chatObject);
+                GameFuse.Log("GameFuseChat getOlderChats success");
+
+                // loop over the new chats and add them to the chats array
+                response.data.forEach(chatJson => {
+                    this.chats.push(GameFuseUtilities.convertJsonTo('GameFuseChat', chatJson));
+                })
 
                 GameFuseUtilities.HandleCallback(
                     response,
-                    `Chat and message added!`,
+                    `Page ${page} of chats received!`,
                     callback,
                     true
                 );
@@ -555,6 +476,14 @@ class GameFuseUser {
             console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
+    }
+
+    sendMessage(firstMessage, callback = undefined) {
+        if(!this.getIsOtherUser()){
+            throw('Cannot send a message to yourself!');
+        }
+
+        return GameFuseChat.sendMessage(this.getUsername(), firstMessage, callback)
     }
 
     getAttributes() {
@@ -1052,5 +981,4 @@ class GameFuseUser {
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
-
 }
