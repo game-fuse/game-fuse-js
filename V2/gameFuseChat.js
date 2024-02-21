@@ -24,7 +24,6 @@ class GameFuseChat {
     static async sendMessage(recipients, firstMessage, callback = undefined){
         try {
             recipients = Array.isArray(recipients) ? recipients : [recipients]
-
             let usernames, clanId;
             if (recipients.every(recipient => typeof (recipient) === 'string')) {
                 usernames = recipients;
@@ -37,11 +36,13 @@ class GameFuseChat {
                 throw('All recipients passed must be of the same type: IDs, usernames, or GameFuseUser objects')
             }
 
-            let body;
-            // if(usernames !== undefined){
-            // for a specific user or group of users
-            usernames = [...new Set(usernames, GameFuseUser.CurrentUser.getUsername())]; // add current user's username and avoid duplicates
-            body = {
+            let currentUser = GameFuseUser.CurrentUser;
+            // let body;
+            // if(usernames !== undefined){ //
+            // for a specific user or group of users. add current user's username and avoid duplicates by using the Set class.
+            usernames.push(currentUser.getUsername());
+            usernames = [...new Set(usernames)];
+            let body = {
                 text: firstMessage,
                 usernames: usernames,
             }

@@ -36,7 +36,7 @@ class GameFuseExampleMessages {
         chat = chats[0];
         messages = chat.getMessages();
         Test.expect(messages.length, 2, 'Now there should be 2 messages in the chat');
-        Test.expect(messages[1].getText(), 'I am replying :)', 'The message text of the last message should be the text of the most recent message we sent');
+        Test.expect(messages[0].getText(), 'I am replying :)', 'The message text of the first message should be the text of the most recent message we sent');
         Test.expect(messages.every(msg => msg.getIsFromMe() === true), true, 'Both messages should show up as from Me');
 
         // 4. sign in as user2, expect chat data to be accurate
@@ -55,7 +55,7 @@ class GameFuseExampleMessages {
         await Test.takeActionWithCallback('create group chat with user3 and user2, using userIDs', GameFuseChat, 'sendMessage', [this.user3name, this.user2name], 'Hello, my friends :)');
         chats = currentUser().getChats();
         Test.expect(chats.length, 2, 'there should now be 2 chats for user 1');
-        let groupChat = chats[1];
+        let groupChat = chats[0]; // the most recent chat should now be the first one.
         let groupMessages = groupChat.getMessages();
         Test.expect(groupMessages.length, 1, 'the group chat should have 1 message');
         let participants = groupChat.getParticipants();
@@ -68,7 +68,7 @@ class GameFuseExampleMessages {
             await Test.takeActionWithCallback(`message ${i+1}`, groupChat, 'sendMessage', `This is message number ${i+1}`);
         }
 
-        Test.expect(currentUser().getChats()[1].getMessages().length, 31, 'the group chat should now have 31 messages (because it was being added to after each message)');
+        Test.expect(currentUser().getChats()[0].getMessages().length, 31, 'the group chat should now have 31 messages (because it was being added to after each message)');
 
         // 8. sign in as user3, expect there to be less messages to check that pagination is working correctly.
         await Test.takeActionWithCallback('sign in as user3', GameFuse, 'signIn', this.user3email, 'password');
