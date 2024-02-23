@@ -10,7 +10,7 @@ class GameFuseTestingUtilities {
             });
         });
 
-        return [username, email, GameFuseUser.CurrentUser.getID()]
+        return new GameFuseUser(false, 0, undefined, undefined, username, 0, 0, GameFuseUser.CurrentUser.getID(), {}, [], [], undefined, true)
     }
 
     static expect(thing1, thing2, thingWeAreChecking) {

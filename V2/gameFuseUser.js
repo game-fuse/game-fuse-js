@@ -139,6 +139,11 @@ class GameFuseUser {
         return this.id;
     }
 
+    // solely for the test scripts
+    getTestEmail() {
+        return `${this.username}@mundo.com`
+    }
+
     async addCredits(credits, callback = undefined) {
       try {
         GameFuse.Log("GameFuseUser Add Credits: " + credits.toString());

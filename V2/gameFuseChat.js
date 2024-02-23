@@ -18,40 +18,38 @@ class GameFuseChat {
     }
 
     // Use this method to create a new chat object (although it will add to the existing chat appropriately if the chat already exists).
-    // recipients => array of either usernames or user objects with whom the chat should be, or a clan (coming soon).
-    // TODO: can also be a clan. Or some other type of "group". this will come once we have clans.
-    //      it will be an instance method on clan, called sendMessage, which will call this method with Clan as the recipient.
+    // recipients => array of either usernames or user objects with whom the chat should be, or a group (coming soon).
+    // TODO: can also be a group. Or some other type of "group". this will come once we have groups.
+    //      it will be an instance method on group, called sendMessage, which will call this method with Group as the recipient.
     static async sendMessage(recipients, firstMessage, callback = undefined){
         try {
             recipients = Array.isArray(recipients) ? recipients : [recipients]
-            let usernames, clanId;
+            let usernames, groupId;
             if (recipients.every(recipient => typeof (recipient) === 'string')) {
                 usernames = recipients;
             } else if (recipients.every(recipient => recipient instanceof GameFuseUser)) {
-                usernames = recipients.map(user => user.getID());
-            // } else if (recipients.every(recipient => recipient instanceof GameFuseClan)) {
+                usernames = recipients.map(user => user.getUsername());
+            // } else if (recipients.every(recipient => recipient instanceof GameFuseGroup)) {
             //     TODO: THIS BLOCK COMING SOON
-            //     clanId = recipients[0].getId();
+            //     groupId = recipients[0].getId();
             } else {
                 throw('All recipients passed must be of the same type: IDs, usernames, or GameFuseUser objects')
             }
 
-            let currentUser = GameFuseUser.CurrentUser;
+            // NOTE: current user's username gets added on the backend if it is not already in the recipients parameter.
+            
             // let body;
             // if(usernames !== undefined){ //
-            // for a specific user or group of users. add current user's username and avoid duplicates by using the Set class.
-            usernames.push(currentUser.getUsername());
-            usernames = [...new Set(usernames)];
             let body = {
                 text: firstMessage,
                 usernames: usernames,
             }
             // TODO: this block coming soon
             // } else {
-            //     // for a clan.
+            //     // for a group.
             //     body = {
             //         text: firstMessage,
-            //         clan_id: clanId
+            //         group_id: groupId
             //     }
             // }
 
@@ -72,6 +70,7 @@ class GameFuseChat {
 
                 // Add (or replace) the chat to the beginning of the chats array (newest chats go first)
                 // Even if it's an existing chat, we want to replace it since the new chat data from the API will be the most up-to-date version.
+                let currentUser = GameFuseUser.CurrentUser;
                 let chatObject = GameFuseUtilities.convertJsonTo('GameFuseChat', response.data);
                 currentUser.chats = currentUser.chats.filter(chat => chat.getID() !== chatObject.getID());
                 currentUser.chats.unshift(chatObject);
