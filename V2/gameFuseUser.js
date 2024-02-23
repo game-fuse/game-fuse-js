@@ -21,6 +21,8 @@ class GameFuseUser {
         this.isOtherUser = isOtherUser;
         this.friendshipId = friendshipId;
         this.chats = [];
+        this.groups = [];
+        this.pendingGroupInvitations = []
     }   
 
     static get CurrentUser() {
@@ -137,6 +139,14 @@ class GameFuseUser {
 
     getID() {
         return this.id;
+    }
+
+    getGroups() {
+        return this.groups;
+    }
+
+    getPendingGroupInvitations() {
+        return this.pendingGroupInvitations;
     }
 
     // solely for the test scripts
