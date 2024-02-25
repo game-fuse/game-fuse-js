@@ -79,21 +79,14 @@ class GameFuseFriendRequest {
 
                 // remove this friendship from the friend requests list
                 GameFuseUser.CurrentUser.outgoingFriendRequests = GameFuseUser.CurrentUser.outgoingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID())
-
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    `friend request has been cancelled successfully`,
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? 'Friend request has been cancelled successfully' : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
         } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
@@ -140,21 +133,14 @@ class GameFuseFriendRequest {
                     // add the user to the friends list, at the beginning
                     GameFuseUser.CurrentUser.friends.unshift(this.getOtherUser()); // otherUser is a reference to the UserCache object
                 }
-
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    `friend request has been ${acceptedOrRejected} successfully`,
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `friend request has been ${acceptedOrRejected} successfully` : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
         } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)

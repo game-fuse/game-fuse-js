@@ -80,7 +80,7 @@ class GameFuseExampleMessages {
         await Test.test('User3 sends 30 messages to the group chat', async (resolve, reject) => {
             let groupChat = currentUser().getChats()[0]; // TODO: ENSURE THIS IS THE RIGHT CHAT
             for(let i = 0; i < 30; i++) {
-                await groupChat.sendMessage(`This is message number ${i+1}`, () => { console.log(`sent message ${i}`) });
+                await groupChat.sendMessage(`This is message number ${i+1}`, () => { });
             }
 
             // TODO: can we just re-use the variable 'groupChat' here or does it point to a different object?

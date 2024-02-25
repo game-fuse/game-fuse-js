@@ -74,21 +74,16 @@ class GameFuseChat {
                 let chatObject = GameFuseUtilities.convertJsonTo('GameFuseChat', response.data);
                 currentUser.chats = currentUser.chats.filter(chat => chat.getID() !== chatObject.getID());
                 currentUser.chats.unshift(chatObject);
-
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    `Chat and message added!`,
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? 'Chat and message added!' : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
+
+
         } catch (error) {
             console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
@@ -124,20 +119,14 @@ class GameFuseChat {
                 GameFuse.Log("GameFuseChat sendMessage success");
                 // add the message to the beginning of the chat object messages array (newest messages go first)
                 this.messages.unshift(GameFuseUtilities.convertJsonTo('GameFuseMessage', response.data));
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    `Message sent!`,
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? 'Message sent!' : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
         } catch (error) {
             console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
@@ -169,21 +158,14 @@ class GameFuseChat {
                 response.data.forEach(messageJson => {
                     this.messages.push(GameFuseUtilities.convertJsonTo('GameFuseMessage', messageJson));
                 })
-
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    `Page ${page} of messages received!`,
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Page ${page} of messages received!` : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
         } catch (error) {
             console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)

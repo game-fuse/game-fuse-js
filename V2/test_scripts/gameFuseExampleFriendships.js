@@ -15,10 +15,12 @@ class GameFuseExampleFriendships {
         // console.log(0)
         // await Test.myNormalMethod()
         // console.log(3)
+        // await Test.sleep(2000)
+        // console.log(4)
+        // await Test.sleep(2000)
+        // console.log(5)
+        // throw('stop the test here');
 
-
-
-        throw('stop the test here');
         // 1. Sign up 5 users
         for(let i = 1; i <= 5; i++){
             this[`user${i}`] = await Test.signUpUser();

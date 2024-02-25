@@ -339,7 +339,7 @@ class GameFuseUser {
         let incomingFriendReqData = apiData.incoming_friend_requests;
         let outgoingFriendReqData = apiData.outgoing_friend_requests
         let chatsData = apiData.chats;
-        // TODO: let clansData = apiData.clans;
+        // TODO: let groupData = apiData.groups;
 
         if(friendsData !== undefined) {
             this.friends = friendsData.map(friendData => {
@@ -403,21 +403,14 @@ class GameFuseUser {
 
                 // delete the friend from the friends array. Leave them in the UserCache in case they have a chat with them...
                 GameFuseUser.CurrentUser.friends = GameFuseUser.CurrentUser.friends.filter(user => user.getID() !== this.getID())
-
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    `friendship with user ${this.getUsername()} has been deleted successfully`,
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `friendship with user ${this.getUsername()} has been deleted successfully` : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
         } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
@@ -452,21 +445,14 @@ class GameFuseUser {
                 response.data.forEach(chatJson => {
                     this.chats.push(GameFuseUtilities.convertJsonTo('GameFuseChat', chatJson));
                 })
-
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    `Page ${page} of chats received!`,
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Page ${page} of chats received!` : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
         } catch (error) {
             console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)

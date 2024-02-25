@@ -55,7 +55,7 @@ class GameFuseTestingUtilities {
             }
         };
     }
-    
+
     static describe(thingWeAreDescribing, callback) {
         return this.test(thingWeAreDescribing, callback)
     }
