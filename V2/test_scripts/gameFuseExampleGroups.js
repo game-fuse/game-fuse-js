@@ -11,12 +11,22 @@ class GameFuseExampleGroups {
         GameFuseTestingUtilities.startTest(this.testGroups.bind(this), this)
     }
 
+    createUser() {
+        return Test.takeAction('signing up user1', 'Test.signUpUser()');
+    }
+
+    async createGroup(options) {
+        await Test.takeActionWithCallback('Creating a group', GameFuseGroup, 'create', options);
+    }
+
     async testGroups() {
         console.log('WE ARE UP AND RUNNING BABY')
         // 1. Create a new group (pass in options, like name, invite only, auto-join vs acceptance, max group size, etc.??)
-        this.user1 = await Test.takeAction('signing up user1', Test, 'signUpUser');
-        let options = { name: 'My Cool Group', inviteOnly: true, autoJoin: false, maxGroupSize: undefined }
-        await Test.takeActionWithCallback('Creating a group', GameFuseGroup, 'create', options);
+
+        this.user1 = await this.createUser();
+        this.group1 = await this.createGroup({ name: 'My Cool Group', inviteOnly: true, autoJoin: false, maxGroupSize: undefined });
+
+
         let user1Groups = currentUser().getGroups();
         Test.expect(user1Groups.length, 1, 'There should be 1 group for user1');
         let firstGroup = user1Groups[0];
@@ -124,7 +134,7 @@ class GameFuseExampleGroups {
         let actualGroupMembers = JSON.stringify(groupMembers.map(member => member.getUsername()));
         Test.expect(actualGroupMembers, expectedGroupMembers, 'The users in the group should be user1, user2, and user3 (NOT user5)')
 
-        
+
         // 10. Group can have leaderboard entries.....??????
 
         // 11. Random user can get a list of existing groups that aren't private...

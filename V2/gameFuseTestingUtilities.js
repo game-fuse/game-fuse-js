@@ -13,25 +13,57 @@ class GameFuseTestingUtilities {
         return new GameFuseUser(false, 0, undefined, undefined, username, 0, 0, GameFuseUser.CurrentUser.getID(), {}, [], [], undefined, true)
     }
 
-    static expect(thing1, thing2, thingWeAreChecking) {
-        if(thing1 !== thing2){
-            throw(`The following expectation failed: ${thingWeAreChecking}`);
-        } else {
-            console.log(`Success: ${thingWeAreChecking}`)
+    static sleep(delay) {
+        return new Promise((resolve) => setTimeout(resolve, delay) )
+    }
+
+    static myNormalMethod() {
+        console.log(1)
+        return this.someAsyncMethod();
+    }
+
+    static async someAsyncMethod(){
+        for(let i = 0; i < 200; i++){
+            console.log(i);
         }
     }
 
-    // Use this for a normal action that doesn't need a callback
-    static takeAction(action, obj, method, ...args){
-        console.log(action)
-        return obj[method](...args)
+    // describe(description, callback) {
+    //     console.log(`\n${description}:`);
+    //     callback();
+    // }
+    //
+    // async context(description, callback) {
+    //     console.log(`   - ${description}:`);
+    //     callback();
+    // }
+    //
+    // // Define an `it` function that takes a description and a callback
+    // it(description, callback) {
+    //     console.log(`     - ${description}`);
+    //     callback();
+    // }
+
+    static expect(actual) {
+        return {
+            toEqual: (expected, optionalLog = '') => {
+                if (actual === expected) {
+                    console.log(`   - Test passed! ${optionalLog}`);
+                } else {
+                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
+                }
+            }
+        };
+    }
+    
+    static describe(thingWeAreDescribing, callback) {
+        return this.test(thingWeAreDescribing, callback)
     }
 
-    // Use this for an action that requires a callback inside of it
-    static async takeActionWithCallback(action, obj, method, ...args){
-        return await new Promise((resolve, reject) => {
-            args.push((message, _hasError) => { resolve(message) })
-            this.takeAction(action, obj, method, ...args)
+    static async test(whatWeAreTesting, callback) {
+        console.log(whatWeAreTesting);
+        return new Promise((resolve, reject) => {
+            callback(resolve, reject);
         });
     }
 

@@ -44,21 +44,14 @@ class GameFuseFriendRequest {
                 GameFuseUser.CurrentUser.outgoingFriendRequests.unshift(
                     GameFuseUtilities.convertJsonTo('GameFuseFriendRequest', response.data)
                 );
-
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    "friend request has been sent successfully",
-                    callback,
-                    true
-                );
-            } else {
-                GameFuseUtilities.HandleCallback(
-                    response,
-                    response.data, // message from the API
-                    callback,
-                    false
-                );
             }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? 'friend request has been sent successfully' : response.data,
+                callback,
+                responseOk
+            )
         } catch (error) {
             console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)

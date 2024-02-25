@@ -156,7 +156,7 @@ class GameFuse {
     }
 
     static signIn(email, password, callback = undefined) {
-        this.Instance.signInPrivate(email, password, callback);
+        return this.Instance.signInPrivate(email, password, callback);
     }
 
     async signInPrivate(email, password, callback = undefined) {

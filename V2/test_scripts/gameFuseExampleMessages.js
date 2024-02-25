@@ -13,91 +13,122 @@ class GameFuseExampleMessages {
     }
 
     async testMessaging(message, hasError) {
-
-        // 1. Sign up user1 and user2, in reverse order so that we can end with user1 being signed in
-        this.user2 = await Test.takeAction('signing up user2', Test, 'signUpUser');
-        this.user1 = await Test.takeAction('signing up user1', Test, 'signUpUser');
-        Test.expect(currentUser().getChats().length, 0, 'expect to have no chats');
-
-        // 2. Send a message to user2, using the user object method; check that the chat data is there.
-        await Test.takeActionWithCallback('Creating a chat with user2, passing username', this.user2, 'sendMessage', 'Hello, my name is Michael.');
-        let chats = currentUser().getChats();
-        Test.expect(chats.length, 1, 'There should be 1 chat');
-        let messages = chats[0].getMessages();
-        Test.expect(messages.length, 1, 'There should be 1 message in that chat');
-        Test.expect(messages[0].getText(), 'Hello, my name is Michael.', 'The message text in that chat should be the same as what we set it to above in Chat.sendMessage');
-
-        // 3. Send another message to the chat, check that the data is there
-        let chat = chats[0];
-        await Test.takeActionWithCallback('send another message (reply to the chat)', chat, 'sendMessage', 'I am replying :)');
-        chats = currentUser().getChats();
-        Test.expect(chats.length, 1, 'Should still have 1 chat');
-        chat = chats[0];
-        messages = chat.getMessages();
-        Test.expect(messages.length, 2, 'Now there should be 2 messages in the chat');
-        Test.expect(messages[0].getText(), 'I am replying :)', 'The message text of the first message should be the text of the most recent message we sent');
-        Test.expect(messages.every(msg => msg.getIsFromMe() === true), true, 'Both messages should show up as from me');
-
-        // 4. Sign in as user2, expect chat data to be accurate
-        await Test.takeActionWithCallback('sign in as user2', GameFuse, 'signIn', this.user2.getTestEmail(), 'password');
-        messages = currentUser().getChats()[0].getMessages();
-        Test.expect(messages.every(msg => msg.getIsFromMe() === false), true, 'Neither message should show up as from me');
-        let otherUserMessage = messages[0];
-        Test.expect(otherUserMessage.getUser() instanceof GameFuseUser, true, 'the other user should be inside the message');
-        Test.expect(otherUserMessage.getUser().getUsername(), this.user1.getUsername(), "the other user's username should be user1's username");
-
-        // 5. Sign up user3
-        this.user3 = await Test.takeAction('signing up a 3rd user', Test, 'signUpUser');
-
-        // 6. Create a group chat with user3 and user2 as user1
-        await Test.takeActionWithCallback('sign back in as user1', GameFuse, 'signIn', this.user1.getTestEmail(), 'password');
-        await Test.takeActionWithCallback('create group chat with user3 and user2, using userIDs', GameFuseChat, 'sendMessage', [this.user3.getUsername(), this.user2.getUsername()], 'Hello, my friends :)');
-        chats = currentUser().getChats();
-        Test.expect(chats.length, 2, 'there should now be 2 chats for user 1');
-        let groupChat = chats[0]; // the most recent chat should now be the first one.
-        let groupMessages = groupChat.getMessages();
-        Test.expect(groupMessages.length, 1, 'the group chat should have 1 message');
-        let participants = groupChat.getParticipants();
-        Test.expect(participants.length, 3, 'the group chat should have 3 participants');
-        let actualChatUsernames = JSON.stringify(participants.map(part => part.getUsername()).sort())
-        let expectedChatUsernames = JSON.stringify([this.user1.getUsername(), this.user2.getUsername(), this.user3.getUsername()].sort())
-        Test.expect(actualChatUsernames, expectedChatUsernames, 'the participants should have user1, 2, and 3 usernames inside of GameFuseUser objects');
-
-        // 7. Create 30 messages with user3
-        console.log('About to send 30 messages to the group chat (spamming much??)')
-        for(let i = 0; i < 30; i++) {
-            await Test.takeActionWithCallback(`message ${i+1}`, groupChat, 'sendMessage', `This is message number ${i+1}`);
+        // sign up 3 users, in reverse order so we end with user1 signed in
+        for(let i = 3; i >= 1; i--){
+            this[`user${i}`] = await Test.signUpUser();
         }
 
-        Test.expect(currentUser().getChats()[0].getMessages().length, 31, 'the group chat should now have 31 messages (because it was being added to after each message)');
+        await Test.test('User1 sends a messages to user2 (creating a new chat)', async (resolve, reject) => {
+            // Send a message to user2, using the user object method; check that the chat data is there.
+            await this.user2.sendMessage('Hello, my name is Michael.', () => { console.log('Sent a message to user2 (userObj.sendMessage)') });
+            let chats = currentUser().getChats();
+            Test.expect(chats.length).toEqual(1, 'There should be 1 chat');
+            let messages = chats[0].getMessages();
+            Test.expect(messages.length).toEqual(1, 'There should be 1 message in that chat');
+            Test.expect(messages[0].getText()).toEqual('Hello, my name is Michael.', 'The message text in that chat should be the same as what we set it to above in Chat.sendMessage');
 
-        // 8. Sign in as user3, expect there to be less messages to check that pagination is working correctly.
-        await Test.takeActionWithCallback('sign in as user3', GameFuse, 'signIn', this.user3.getTestEmail(), 'password');
-        groupChat = currentUser().getChats()[0];
-        Test.expect(groupChat.getMessages().length, 25, 'The group chat should only have 25 messages in it (due to the pagination feature)')
+            resolve();
+        })
 
-        // 9. Get the 2nd page of chats, expect them to be there
-        await Test.takeActionWithCallback('Fetching the 2nd page of chats', groupChat, 'getOlderMessages', 2);
-        Test.expect(groupChat.getMessages().length, 31, 'The group chat should now have all 31 messages in it');
+        await Test.test('User1 sends another message to user2 (replying to the existing chat)', async (resolve, reject) => {
+            // Send another message to the chat, check that the data is there
+            let chat = currentUser().getChats()[0];
+            await chat.sendMessage('I am replying :)', () => { console.log('chat.sendMessage(message)') });
+            let chats = currentUser().getChats();
+            Test.expect(chats.length).toEqual(1, 'User1 Should still have 1 chat');
+            chat = chats[0];
+            let messages = chat.getMessages();
+            Test.expect(messages.length).toEqual(2, 'Now there should be 2 messages in the chat');
+            Test.expect(messages[0].getText()).toEqual('I am replying :)', 'The message text of the first message should be the text of the most recent message we sent');
+            Test.expect(messages.every(msg => msg.getIsFromMe() === true)).toEqual(true, 'Both messages should show up as from me');
 
-        // 10. Create 25 other chats, all with user1, coming from 25 different users.
-        for(let i = 0; i < 25; i++) {
-            await Test.takeAction('', Test, 'signUpUser');
-            // test with both user object and username. If odd, pass username, if even, pass user object
-            let objToPass = i % 2 === 0 ? this.user1 : this.user1.getUsername();
-            await Test.takeActionWithCallback('', GameFuseChat, 'sendMessage', objToPass, `message ${i} in loop`);
-        }
+            resolve()
+        })
 
-        // 11. Sign in with user1, expect 25 of the chats to be in the array, but not all 27 of them due to pagination.
-        await Test.takeActionWithCallback('sign in as user1', GameFuse, 'signIn', this.user1.getTestEmail(), 'password');
-        Test.expect(currentUser().getChats().length, 25, 'There should only be 25 chats in the chats array');
+        await Test.test('Expect the chat data for user2 to be accurate', async (resolve, reject) => {
+            await GameFuse.signIn(this.user2.getTestEmail(), 'password', () => { });
+            let messages = currentUser().getChats()[0].getMessages();
+            Test.expect(messages.every(msg => msg.getIsFromMe() === false)).toEqual(true, 'Neither message should show up as from me');
+            let otherUserMessage = messages[0];
+            Test.expect(otherUserMessage.getUser() instanceof GameFuseUser).toEqual(true, 'the other user should be inside the message');
+            Test.expect(otherUserMessage.getUser().getUsername()).toEqual(this.user1.getUsername(), "the other user's username should be user1's username");
 
-        // 12. Get the 2nd page of chats and expect them all to be there.
-        await Test.takeActionWithCallback('get the 2nd page of chats', currentUser(), 'getOlderChats', 2);
-        Test.expect(currentUser().getChats().length, 27, 'There should now be all 27 chats in the array after getting the rest of the chats from the API');
+            resolve();
+        })
+
+        await Test.test('User1 starts a group chat with user2 and user3', async (resolve, reject) => {
+            await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => { });
+            await GameFuseChat.sendMessage([this.user3.getUsername(), this.user2.getUsername()], 'Hello, my friends :)', () => { console.log('create group chat with user3 and user2, using usernames')});
+
+            let chats = currentUser().getChats();
+            Test.expect(chats.length).toEqual(2, 'there should now be 2 chats for user 1');
+
+            let groupChat = chats[0]; // the most recent chat should now be the first one.
+            let groupMessages = groupChat.getMessages();
+            Test.expect(groupMessages.length).toEqual(1, 'the group chat should have 1 message');
+
+            let participants = groupChat.getParticipants();
+            Test.expect(participants.length).toEqual(3, 'the group chat should have 3 participants');
+
+            let actualChatUsernames = JSON.stringify(participants.map(part => part.getUsername()).sort())
+            let expectedChatUsernames = JSON.stringify([this.user1.getUsername(), this.user2.getUsername(), this.user3.getUsername()].sort())
+            Test.expect(actualChatUsernames).toEqual(expectedChatUsernames, 'the participants should have user1, 2, and 3 usernames inside of GameFuseUser objects');
+
+            resolve();
+        })
+
+        await Test.test('User3 sends 30 messages to the group chat', async (resolve, reject) => {
+            let groupChat = currentUser().getChats()[0]; // TODO: ENSURE THIS IS THE RIGHT CHAT
+            for(let i = 0; i < 30; i++) {
+                await groupChat.sendMessage(`This is message number ${i+1}`, () => { console.log(`sent message ${i}`) });
+            }
+
+            // TODO: can we just re-use the variable 'groupChat' here or does it point to a different object?
+            Test.expect(currentUser().getChats()[0].getMessages().length).toEqual(31, 'the group chat should now have 31 messages (because it was being added to after each message)');
+
+            resolve()
+        })
+
+        await Test.test('Expect pagination to work correctly when User3 signs in', async (resolve, reject) => {
+            await GameFuse.signIn(this.user3.getTestEmail(), 'password', () => { });
+            let groupChat = currentUser().getChats()[0];
+            Test.expect(groupChat.getMessages().length).toEqual(25, 'The group chat should only have 25 messages in it (due to the pagination feature)')
+
+            resolve()
+        })
+
+        await Test.test('Get the 2nd page of messages from the API', async(resolve, reject) => {
+            let groupChat = currentUser().getChats()[0];
+            await groupChat.getOlderMessages(2, () => { console.log('got the 2nd page of messages') });
+            Test.expect(groupChat.getMessages().length).toEqual(31, 'The group chat should now have all 31 messages in it');
+
+            resolve()
+        })
+
+        await Test.describe('Get 2nd page of older chats', async (resolve, reject) => {
+
+            await Test.test('25 different users create chats with user1 (to test pagination)', async (resolve, reject) => {
+                for(let i = 4; i <= 28; i++) {
+                    this[`user${i}`] = await Test.signUpUser();
+                    // test with both user object and username. If odd, pass username, if even, pass user object
+                    let objToPass = i % 2 === 0 ? this.user1 : this.user1.getUsername();
+                    await GameFuseChat.sendMessage(objToPass, `message ${i} in loop`, () => { console.log(`created chat+message ${i}`) });
+                }
+
+                resolve();
+            })
+
+            await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => { });
+            Test.expect(currentUser().getChats().length).toEqual(25, 'expect 25 of the chats to be in the array, but not all 27 of them due to pagination.');
+
+            await currentUser().getOlderChats(2, () => { console.log('got the 2nd page of chats') });
+            Test.expect(currentUser().getChats().length).toEqual(27, 'There should now be all 27 chats in the array after getting the rest of the chats from the API');
+
+            resolve()
+        })
 
         // Hallelujah!
-        console.log("SUCCESS!! WE MADE IT TO THE END OF OF THE MESSAGING TEST SCRIPT WITH NO ERRORS.")
+        console.log("Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE MESSAGING TEST SCRIPT WITH NO ERRORS.")
     }
 }
 
