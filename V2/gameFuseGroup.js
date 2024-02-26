@@ -1,34 +1,29 @@
 class GameFuseGroup {
-    constructor(name, category, description, cost, id, icon_url) {
-        this.name = name;
-        this.category = category;
-        this.description = description;
-        this.cost = cost;
+    constructor(id, name, options) {
         this.id = id;
-        this.icon_url = icon_url;
+        this.name = name;
+        this.canAutoJoin = options.canAutoJoin;
+        this.isInviteOnly = options.isInviteOnly;
+        this.maxGroupSize = options.maxGroupSize;
+    }
+
+    getID() {
+        return this.id;
     }
 
     getName() {
         return this.name;
     }
 
-    getCategory() {
-        return this.category;
+    getCanAutoJoin() {
+        return this.canAutoJoin;
     }
 
-    getDescription() {
-        return this.description;
+    getIsInviteOnly() {
+        return this.isInviteOnly;
     }
 
-    getCost() {
-        return this.cost;
-    }
-
-    getId() {
-        return this.id;
-    }
-
-    getIconUrl() {
-        return this.icon_url;
+    getMaxGroupSize() {
+        return this.maxGroupSize;
     }
 }

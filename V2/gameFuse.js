@@ -200,11 +200,11 @@ class GameFuse {
     }
 
     static signUp(email, password, password_confirmation, username, callback = undefined) {
-        this.Instance.signUpPrivate(email, password, password_confirmation, username, callback);
+        return this.Instance.signUpPrivate(email, password, password_confirmation, username, callback);
     }
 
     signUpPrivate(email, password, password_confirmation, username, callback = undefined) {
-        this.signUpRoutine(email, password, password_confirmation, username, callback);
+        return this.signUpRoutine(email, password, password_confirmation, username, callback);
     }
 
     async signUpRoutine(email, password, password_confirmation, username, callback = undefined) {

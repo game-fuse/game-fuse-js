@@ -1,17 +1,4 @@
 class GameFuseTestingUtilities {
-    static async signUpUser(){
-        let random = Math.floor(Math.random() * 1000000000000);
-        let username = `user${random}`;
-        let email = `${username}@mundo.com`;
-
-        await new Promise((resolve, reject) => {
-            GameFuse.signUp(email, "password", "password", username, (message, hasError) => {
-                resolve(message)
-            });
-        });
-
-        return new GameFuseUser(false, 0, undefined, undefined, username, 0, 0, GameFuseUser.CurrentUser.getID(), {}, [], [], undefined, true)
-    }
 
     static sleep(delay) {
         return new Promise((resolve) => setTimeout(resolve, delay) )
@@ -28,11 +15,25 @@ class GameFuseTestingUtilities {
         }
     }
 
-    // describe(description, callback) {
-    //     console.log(`\n${description}:`);
-    //     callback();
-    // }
-    //
+    static expect(actual) {
+        return {
+            toEqual: (expected, optionalLog = '') => {
+                if (actual === expected) {
+                    console.log(`   - Test passed! ${optionalLog}`);
+                } else {
+                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
+                }
+            },
+            notToEqual: (expected, optionalLog = '') => {
+                if (actual !== expected) {
+                    console.log(`   - Test passed! ${optionalLog}`);
+                } else {
+                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
+                }
+            }
+        };
+    }
+
     // async context(description, callback) {
     //     console.log(`   - ${description}:`);
     //     callback();
@@ -44,27 +45,31 @@ class GameFuseTestingUtilities {
     //     callback();
     // }
 
-    static expect(actual) {
-        return {
-            toEqual: (expected, optionalLog = '') => {
-                if (actual === expected) {
-                    console.log(`   - Test passed! ${optionalLog}`);
-                } else {
-                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
-                }
-            }
-        };
-    }
-
     static describe(thingWeAreDescribing, callback) {
         return this.test(thingWeAreDescribing, callback)
     }
 
     static async test(whatWeAreTesting, callback) {
         console.log(whatWeAreTesting);
-        return new Promise((resolve, reject) => {
-            callback(resolve, reject);
-        });
+
+        // note: only need to return this promise below if we don't call this method async. Otherwise it implicitly returns a promise that gets resolved by the returned value of the method.
+        // return new Promise((resolve, reject) => {
+        //     callback(resolve, reject);
+        //     before we passed in resolve/reject so that the callback could resolve the promise,
+        //     since we are using async/await, the promise gets resolved implicitly by the return value so
+        //     there's no need to manually resolve it.
+        // });
+        return callback()
+    }
+
+    static async signUpUser(){
+        let random = Math.floor(Math.random() * 1000000000000);
+        let username = `user${random}`;
+        let email = `${username}@mundo.com`;
+
+        await GameFuse.signUp(email, "password", "password", username, () => { })
+
+        return new GameFuseUser(false, 0, undefined, undefined, username, 0, 0, GameFuseUser.CurrentUser.getID(), {}, [], [], undefined, true)
     }
 
     static startTest(testMethod, testClassInstance){
