@@ -5,6 +5,8 @@ class GameFuseGroup {
         this.canAutoJoin = options.canAutoJoin;
         this.isInviteOnly = options.isInviteOnly;
         this.maxGroupSize = options.maxGroupSize;
+        this.members = [] // should include everyone, including admins.
+        this.admins = []
     }
 
     getID() {
@@ -13,6 +15,14 @@ class GameFuseGroup {
 
     getName() {
         return this.name;
+    }
+
+    getMembers() {
+        return this.members;
+    }
+
+    getAdmins() {
+        return this.admins;
     }
 
     getCanAutoJoin() {

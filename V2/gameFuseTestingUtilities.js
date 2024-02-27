@@ -87,4 +87,10 @@ class GameFuseTestingUtilities {
             GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, testMethod, true);
         }
     }
+
+    static endTest(testClassInstance) {
+        // make a call to API [auth with service key] and testClassInstance.testSessionID
+
+        // api will clean up all data that has that testSessionID
+    }
 }
