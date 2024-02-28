@@ -191,7 +191,7 @@ class GameFuse {
             GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
             GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
             GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
-            GameFuseUser.CurrentUser.setRelationalDataInternal(response.data);
+            GameFuseJsonHelper.setRelationalDataInternal(response.data);
             GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
         } else {
             this.Log(`GameFuse Sign In Failure: ${email}`);

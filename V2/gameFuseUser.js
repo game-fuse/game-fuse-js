@@ -20,9 +20,13 @@ class GameFuseUser {
         this.incomingFriendRequests = []; // only the ones that you need to respond to
         this.isOtherUser = isOtherUser;
         this.friendshipId = friendshipId;
+
+        // start relational data. These get set when the response arrives back from the signIn method. See: setRelationalDataInternal
         this.chats = [];
         this.groups = [];
-        this.pendingGroupInvitations = []
+        this.groupInvites = [];
+        this.groupJoinRequests = [];
+        this.downloadedAvailableGroups = [];
     }   
 
     static get CurrentUser() {
@@ -145,8 +149,16 @@ class GameFuseUser {
         return this.groups;
     }
 
-    getPendingGroupInvitations() {
-        return this.pendingGroupInvitations;
+    getGroupInvites() {
+        return this.groupInvites;
+    }
+
+    getGroupJoinRequests() {
+        return this.groupJoinRequests;
+    }
+
+    getDownloadedAvailableGroups() {
+        return this.downloadedAvailableGroups;
     }
 
     // solely for the test scripts
@@ -314,7 +326,7 @@ class GameFuseUser {
         const responseOk = await GameFuseUtilities.requestIsOk(response)
         if (responseOk) {
           GameFuse.Log("GameFuseUser Get Attributes Success");
-          this.attributes = GameFuseUtilities.formatUserAttributes(response.data.game_user_attributes);
+          this.attributes = GameFuseJsonHelper.formatUserAttributes(response.data.game_user_attributes);
           await this.downloadStoreItems(chainedFromLogin, callback);
         } else {
           GameFuseUtilities.HandleCallback(
@@ -328,42 +340,6 @@ class GameFuseUser {
         console.log(error) 
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
-    }
-
-    setRelationalDataInternal(apiData){
-        if(this.getID() !== GameFuseUser.CurrentUser.getID()){
-            throw('this method can only be called on the CurrentUser object')
-        }
-
-        let friendsData = apiData.friends;
-        let incomingFriendReqData = apiData.incoming_friend_requests;
-        let outgoingFriendReqData = apiData.outgoing_friend_requests
-        let chatsData = apiData.chats;
-        // TODO: let groupData = apiData.groups;
-
-        if(friendsData !== undefined) {
-            this.friends = friendsData.map(friendData => {
-                return GameFuseUtilities.convertJsonTo('GameFuseUser', friendData)
-            });
-        }
-
-        if(incomingFriendReqData !== undefined) {
-            this.incomingFriendRequests = incomingFriendReqData.map(friendReqData => {
-                return GameFuseUtilities.convertJsonTo('GameFuseFriendRequest', friendReqData);
-            })
-        }
-
-        if(outgoingFriendReqData !== undefined) {
-            this.outgoingFriendRequests = outgoingFriendReqData.map(friendReqData => {
-                return GameFuseUtilities.convertJsonTo('GameFuseFriendRequest', friendReqData);
-            })
-        }
-
-        if(chatsData !== undefined){
-            this.chats = chatsData.map(chatData => {
-                return GameFuseUtilities.convertJsonTo('GameFuseChat', chatData)
-            });
-        }
     }
 
     async sendFriendRequest(callback= undefined) {
@@ -443,7 +419,7 @@ class GameFuseUser {
 
                 // loop over the new chats and add them to the chats array, at the end of the array since they are older.
                 response.data.forEach(chatJson => {
-                    this.chats.push(GameFuseUtilities.convertJsonTo('GameFuseChat', chatJson));
+                    this.chats.push(GameFuseJsonHelper.convertJsonTo('GameFuseChat', chatJson));
                 })
             }
 
@@ -465,6 +441,10 @@ class GameFuseUser {
         }
 
         return GameFuseChat.sendMessage(this.getUsername(), firstMessage, callback)
+    }
+
+    async inviteToGroup(group, callback= undefined) {
+        return group.invite(this, callback);
     }
 
     getAttributes() {
@@ -616,7 +596,7 @@ class GameFuseUser {
         if (responseOk) {
           GameFuse.Log("GameFuseUser Remove Attributes Success: " + key);
 
-          this.attributes = GameFuseUtilities.formatUserAttributes(response.data.game_user_attributes);
+          this.attributes = GameFuseJsonHelper.formatUserAttributes(response.data.game_user_attributes);
         }
 
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined,"Attribute has been removed", callback, true);

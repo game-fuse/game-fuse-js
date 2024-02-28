@@ -71,7 +71,7 @@ class GameFuseChat {
                 // Add (or replace) the chat to the beginning of the chats array (newest chats go first)
                 // Even if it's an existing chat, we want to replace it since the new chat data from the API will be the most up-to-date version.
                 let currentUser = GameFuseUser.CurrentUser;
-                let chatObject = GameFuseUtilities.convertJsonTo('GameFuseChat', response.data);
+                let chatObject = GameFuseJsonHelper.convertJsonTo('GameFuseChat', response.data);
                 currentUser.chats = currentUser.chats.filter(chat => chat.getID() !== chatObject.getID());
                 currentUser.chats.unshift(chatObject);
             }
@@ -118,7 +118,7 @@ class GameFuseChat {
             if (responseOk) {
                 GameFuse.Log("GameFuseChat sendMessage success");
                 // add the message to the beginning of the chat object messages array (newest messages go first)
-                this.messages.unshift(GameFuseUtilities.convertJsonTo('GameFuseMessage', response.data));
+                this.messages.unshift(GameFuseJsonHelper.convertJsonTo('GameFuseMessage', response.data));
             }
 
             GameFuseUtilities.HandleCallback(
@@ -156,7 +156,7 @@ class GameFuseChat {
 
                 // loop over these older messages and add them to the end of the messages array, since they are older.
                 response.data.forEach(messageJson => {
-                    this.messages.push(GameFuseUtilities.convertJsonTo('GameFuseMessage', messageJson));
+                    this.messages.push(GameFuseJsonHelper.convertJsonTo('GameFuseMessage', messageJson));
                 })
             }
 

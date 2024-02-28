@@ -63,7 +63,7 @@ class GameFuseLeaderboardEntry {
     //         const responseOk = await GameFuseUtilities.requestIsOk(response)
     //         if (responseOk) {
     //             GameFuse.Log("GameFuseUser Get Attributes Success");
-    //             this.attributes = GameFuseUtilities.formatUserAttributes(response.data.game_user_attributes);
+    //             this.attributes = GameFuseJsonHelper.formatUserAttributes(response.data.game_user_attributes);
     //         } else {
     //             GameFuseUtilities.HandleCallback(
     //                 response,

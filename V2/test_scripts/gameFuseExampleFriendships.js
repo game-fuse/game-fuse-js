@@ -30,6 +30,7 @@ class GameFuseExampleFriendships {
             await Test.test('2: USER 2 FRIEND REQUESTS USER 1 (USERNAME METHOD)', async () => {
                 await GameFuse.signIn(this.user2.getTestEmail(), 'password', () => { console.log('SIGNED IN USER 2') } )
                 await GameFuseFriendRequest.send(this.user1.getUsername(), () => console.log('USER2 FRIEND REQUESTS USER 1') );
+
                 let friendName = currentUser().getOutgoingFriendRequests()[0].getOtherUser().getUsername()
                 Test.expect(friendName).toEqual(this.user1.getUsername(), 'user2 should have user1 in their outgoing friend requests');
             });
