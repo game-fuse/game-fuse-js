@@ -35,14 +35,19 @@ class GameFuseGroupJoinRequest {
                     'Content-Type': 'application/json',
                     'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
-                data: JSON.stringify({ group_connection: { status: status }})
+                data: JSON.stringify({
+                    group_connection: {
+                        status: status
+                    },
+                    connection_type: 'join_request'
+                })
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
                 GameFuse.Log("GameFuseGroup update group connection successful");
 
-                // regardless of whether status is 'accepted' or 'rejected', remove invite from group.
+                // regardless of whether status is 'accepted' or 'declined', remove invite from group.
                 let group = GameFuseUser.CurrentUser.getGroups().find(group => group.getID() === this.getGroup().getID());
                 group.joinRequests = group.joinRequests.filter(joinRequest => joinRequest.getID() !== this.getID());
                 if(status === 'accepted'){
@@ -68,7 +73,7 @@ class GameFuseGroupJoinRequest {
     }
 
     decline(callback = undefined) {
-        return this.update('rejected', callback)
+        return this.update('declined', callback)
     }
 
     async cancel(status, callback = undefined) {
@@ -86,7 +91,10 @@ class GameFuseGroupJoinRequest {
                 headers: {
                     'Content-Type': 'application/json',
                     'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
-                }
+                },
+                body: JSON.stringify({
+                    connection_type: 'join_request'
+                })
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);

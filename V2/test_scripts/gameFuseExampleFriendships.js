@@ -112,6 +112,7 @@ class GameFuseExampleFriendships {
             Test.expect(friends[0].getUsername()).toEqual(this.user1.getUsername(), 'user2 should have user1 in their friends list');
 
             await friends[0].unfriend(() => { console.log('user2 removes user1 from friends list')})
+
             friends = GameFuseUser.CurrentUser.getFriends();
             Test.expect(friends.length).toEqual(0, 'User2 should have 0 friends');
 

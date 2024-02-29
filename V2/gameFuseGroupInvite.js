@@ -28,7 +28,7 @@ class GameFuseGroupInvite {
         if(!this.inviteIsForCurrentUser()){
             throw('Only the user who was invited can accept or reject this group invite')
         }
-        if(!['accepted', 'rejected'].includes(status)){
+        if(!['accepted', 'declined'].includes(status)){
 
         }
 
@@ -45,7 +45,8 @@ class GameFuseGroupInvite {
                 data: JSON.stringify({
                     group_connection: {
                         status: status
-                    }
+                    },
+                    connection_type: 'invite'
                 })
             });
 
@@ -78,7 +79,7 @@ class GameFuseGroupInvite {
     }
 
     decline(callback = undefined) {
-        return this.update('rejected', callback)
+        return this.update('declined', callback)
     }
 
     async cancel(callback = undefined) {
@@ -96,7 +97,10 @@ class GameFuseGroupInvite {
                 headers: {
                     'Content-Type': 'application/json',
                     'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
-                }
+                },
+                body: JSON.stringify({
+                    connection_type: 'invite'
+                })
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);

@@ -251,7 +251,7 @@ class GameFuseExampleGroups {
 
             await Test.test('group.join(userObj)', async() => {
                 await group.join(this.user4, () => console.log('User4 just auto-joined'));
-            })
+            });
 
             // expect it to be in their groups
             Test.expect(currentUser().getGroups()[0].getName()).toEqual('My Cool Group 1', 'User4 should now have this group in their data');
@@ -267,6 +267,16 @@ class GameFuseExampleGroups {
 
             let group4Admin = findUser4(group.getAdmins());
             Test.expect(group4Admin).toEqual(undefined, 'User4 should not be an admin');
+        });
+
+        await Test.describe('MAKING A MEMBER AN ADMIN', async() => {
+            await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {});
+            let group = currentUser().getGroups()[0]
+            await Test.test('group.makeMemberAdmin(user)', async() => {
+                await group.makeMemberAdmin(this.user4);
+            });
+
+            Test.expect(group.getAdmins().map(user => user.getID()).includes(this.user4.getID())).toEqual(true, 'User4 should now be an admin');
         });
 
         // WRITTEN

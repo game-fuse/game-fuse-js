@@ -100,17 +100,17 @@ class GameFuseFriendRequest {
 
     // Decline a friend request
     async decline(callback) {
-        return this.respond('rejected', callback);
+        return this.respond('declined', callback);
     }
 
     // Private internal method that responds to a friend request (either accepting or declining)
-    async respond(acceptedOrRejected, callback) {
+    async respond(acceptedOrDeclined, callback) {
         try {
             GameFuse.Log(`GameFuseFriendRequest Accept Request for user with username ${this.getOtherUser().getUsername()}`);
             const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipID();
             const data = {
                 friendship: {
-                    status: acceptedOrRejected
+                    status: acceptedOrDeclined
                 }
             };
 
@@ -129,7 +129,7 @@ class GameFuseFriendRequest {
                 // remove from friend requests
                 GameFuseUser.CurrentUser.incomingFriendRequests = GameFuseUser.CurrentUser.incomingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID());
 
-                if(acceptedOrRejected === 'accepted'){
+                if(acceptedOrDeclined === 'accepted'){
                     // add the user to the friends list, at the beginning
                     GameFuseUser.CurrentUser.friends.unshift(this.getOtherUser()); // otherUser is a reference to the UserCache object
                 }
@@ -137,7 +137,7 @@ class GameFuseFriendRequest {
 
             GameFuseUtilities.HandleCallback(
                 response,
-                responseOk ? `friend request has been ${acceptedOrRejected} successfully` : response.data, // message from the api
+                responseOk ? `friend request has been ${acceptedOrDeclined} successfully` : response.data, // message from the api
                 callback,
                 !!responseOk
             )

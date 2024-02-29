@@ -358,7 +358,7 @@ class GameFuseUser {
 
             GameFuse.Log("GameFuseFriendRequest unfriend user with username " + this.getUsername());
 
-            const url = GameFuse.getBaseURL() + "/unfriend"
+            const url = `${GameFuse.getBaseURL()}/unfriend`;
             const data = {
                 user_id: this.getID()
             }

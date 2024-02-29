@@ -100,9 +100,9 @@ class GameFuseGroup {
             const url = `${GameFuse.getBaseURL()}/groups`
             const data = {
                 name: attributes.name,
-                maxGroupSize: attributes.maxGroupSize,
-                canAutoJoin: attributes.canAutoJoin,
-                isInviteOnly: attributes.isInviteOnly
+                max_group_size: attributes.maxGroupSize,
+                can_auto_join: attributes.canAutoJoin,
+                is_invite_only: attributes.isInviteOnly
             }
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
@@ -153,10 +153,24 @@ class GameFuseGroup {
                 throw('You must pass at least one updatable key. See docs.')
             }
 
-            const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}`
+            // we could dynamically convert these to snake case using something like str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);,
+            // but it seems much clearer/more readable to simply create a map like below.
+            let keyMapping = {
+                name: 'name',
+                maxGroupSize: 'max_group_size',
+                canAutoJoin: 'can_auto_join',
+                isInviteOnly: 'is_invite_only'
+            }
 
-            // we can use the attributes hash directly because we checked above that all the keys were permitted.
-            let data = { group: attributes }
+            // we can use all the keys in the attributes hash, since we verified that there were no disallowed keys above.
+            let updateDataHash = {};
+            for (const [key, value] of Object.entries(attributes)) {
+                let snakeCaseKey = keyMapping[key];
+                updateDataHash[snakeCaseKey] = value;
+            }
+
+            let data = { group: updateDataHash }
+            const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}`
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',
                 headers: {
@@ -401,9 +415,9 @@ class GameFuseGroup {
         try {
             GameFuse.Log(`The current user with username ${GameFuseUser.CurrentUser.getUsername()} is leaving group ${this.getName()}`);
 
-            const url = `${GameFuse.getBaseURL()}/group_connections}`
+            const url = `${GameFuse.getBaseURL()}/leave_group`
             const response = await GameFuseUtilities.processRequest(url, {
-                method: 'PUT',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
@@ -437,9 +451,9 @@ class GameFuseGroup {
             GameFuse.Log(`Removing user with username ${userToRemove?.getUsername()} from group with name ${this.getName()}`);
 
             // TODO: figure out if this is the right URL. Should probably be through the group connections model...?
-            const url = `${GameFuse.getBaseURL()}/group_connections/remove_member`;
+            const url = `${GameFuse.getBaseURL()}/remove_member`;
             const response = await GameFuseUtilities.processRequest(url, {
-                method: 'PUT',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
@@ -461,6 +475,43 @@ class GameFuseGroup {
             GameFuseUtilities.HandleCallback(
                 response,
                 responseOk ? `Successfully removed user ${userToRemove?.getUsername()} from the group with name ${this.getName()}` : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
+        } catch {
+            console.log(error);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
+    }
+
+    async makeMemberAdmin(userObj, callback = undefined) {
+        try {
+            GameFuse.Log(`Making user with username ${userObj?.getUsername()} an admin for the group with name ${this.getName()}`);
+
+            const url = `${GameFuse.getBaseURL()}/group_connections/make_member_admin`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                },
+                data: JSON.stringify({
+                    group_id: this.getID(),
+                    user_id: userObj?.getID()
+                })
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+            if (responseOk) {
+                GameFuse.Log('GameFuseGroup makeMemberAdmin success');
+                // remove the group from myGroups
+                let groupToModify = GameFuseUser.CurrentUser.getGroups().find(group => group.getID() === this.getID());
+                groupToModify.admins.unshift(userObj);
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Successfully made user with username ${userObj?.getUsername()} an admin for the group with name ${this.getName()}` : response.data, // message from the api
                 callback,
                 !!responseOk
             )
