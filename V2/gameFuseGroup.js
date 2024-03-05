@@ -1,16 +1,17 @@
 class GameFuseGroup {
     // TODO: have a group cache somewhere.
-    constructor(id, name, canAutoJoin, isInviteOnly, maxGroupSize) {
+    constructor(id, name, canAutoJoin, isInviteOnly, maxGroupSize, memberCount, members = [], admins = [], joinRequests = [], invites = []) {
         this.id = id;
         this.name = name;
         this.canAutoJoin = canAutoJoin;
         this.isInviteOnly = isInviteOnly;
         this.maxGroupSize = maxGroupSize;
-        this.members = []; // should include everyone, including admins.
-        this.admins = [];
+        this.memberCount = memberCount;
+        this.members = members; // should include everyone, including admins.
+        this.admins = admins;
         this.invites = [];
         this.joinRequests = [];
-    }
+    };
 
     getID() {
         return this.id;
@@ -32,6 +33,11 @@ class GameFuseGroup {
         return this.maxGroupSize;
     }
 
+    getMemberCount() {
+        return this.memberCount;
+    }
+
+    // TODO: without a specific member object, how are we going to be able to include things like joinedAt?
     getMembers() {
         return this.members;
     }
@@ -48,6 +54,8 @@ class GameFuseGroup {
         return this.invites;
     }
 
+
+    // JSON RESPONSE WRITTEN (todo: remove)
     static async downloadAvailableGroups(callback = undefined) {
         try {
             GameFuse.Log('Downloading available group')
@@ -68,7 +76,7 @@ class GameFuseGroup {
 
                 // add all the groups to the available groups array
                 response.data.forEach((groupData) => {
-                    let groupObject = GameFuseJsonHelper.convertJsonTo('GameFuseGroup', groupData);
+                    let groupObject = GameFuseJsonHelper.convertJsonToGroup(groupData); // TODO
                     GameFuseUser.CurrentUser.downloadedAvailableGroups.push(groupObject);
                 });
             }
@@ -85,6 +93,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     static async create(attributes, callback = undefined) {
         try {
             GameFuse.Log('Creating a group')
@@ -117,7 +126,7 @@ class GameFuseGroup {
             if (responseOk) {
                 GameFuse.Log("GameFuseGroup create Success");
                 // add this group to the user's groups array
-                let groupObject = GameFuseJsonHelper.convertJsonTo('GameFuseGroup', response.data)
+                let groupObject = GameFuseJsonHelper.convertJsonToGroup(response.data); // TODO
                 GameFuseUser.CurrentUser.groups.unshift(groupObject)
                 GameFuseUser.CurrentUser.downloadedAvailableGroups.unshift(groupObject);
             }
@@ -134,6 +143,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async update(attributes, callback = undefined) {
         try {
             GameFuse.Log(`Updating group with name ${this.getName()}`);
@@ -185,9 +195,12 @@ class GameFuseGroup {
                 GameFuse.Log('GameFuseGroup update Success');
                 // replace the updated object in the myGroups array and in the downloadedAvailableGroups array
                 // TODO: have a group cache that point back to the same group object.
-                let groupObject = GameFuseJsonHelper.convertJsonTo('GameFuseGroup', response.data)
+                // ====> TODO: [related to the above cache] if you update a group for which you've already downloaded the members, don't wipe out the members array, just update the top-level attributes!!!!
+                let groupObject = GameFuseJsonHelper.convertJsonToGroup(response.data); // TODO
+
                 GameFuseUser.CurrentUser.groups = GameFuseUser.CurrentUser.groups.filter(group => group.getID() !== this.getID());
                 GameFuseUser.CurrentUser.groups.unshift(groupObject);
+
                 GameFuseUser.CurrentUser.downloadedAvailableGroups = GameFuseUser.CurrentUser.downloadedAvailableGroups.filter(group => group.getID() !== this.getID());
                 GameFuseUser.CurrentUser.downloadedAvailableGroups.unshift(groupObject);
             }
@@ -204,6 +217,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async destroy(callback = undefined) {
         try {
             GameFuse.Log(`Destroying group with name ${this.getName()}`);
@@ -241,6 +255,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async downloadFullData(callback = undefined) {
         try {
             GameFuse.Log(`Getting full data for group with name ${this.getName()}`);
@@ -258,7 +273,7 @@ class GameFuseGroup {
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup downloadFullData success');
                 // replace the object in the state with the new one.
-                let groupObject = GameFuseJsonHelper.convertJsonTo('GameFuseGroup', response.data)
+                let groupObject = GameFuseJsonHelper.convertJsonToGroup(response.data, true); // override cache = true
                 GameFuseUser.CurrentUser.groups = GameFuseUser.CurrentUser.groups.filter(group => group.getID() !== this.getID());
                 GameFuseUser.CurrentUser.groups.unshift(groupObject);
                 GameFuseUser.CurrentUser.downloadedAvailableGroups = GameFuseUser.CurrentUser.downloadedAvailableGroups.filter(group => group.getID() !== this.getID());
@@ -277,7 +292,7 @@ class GameFuseGroup {
         }
     }
 
-    // TODO: clarify endpoint and then finish.
+    // JSON RESPONSE WRITTEN (todo: remove)
     async join(callback = undefined) {
         try {
             // don't do the validations here (ex. auto-joinable, etc.), let the backend do it in case something has changed since the group data was pulled.
@@ -296,9 +311,9 @@ class GameFuseGroup {
                         group_connection: {
                             group_id: this.getID(),
                             user_id: GameFuse.CurrentUser.getID(),
-                            status: 'accepted'
+                            status: 'accepted',
+                            action_type: 'join'
                         },
-                        action: 'join'
                     }
                 )
             });
@@ -306,8 +321,8 @@ class GameFuseGroup {
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup join success');
-                // remove the group from myGroups
-                GameFuseUser.CurrentUser.groups = GameFuseUser.CurrentUser.groups.filter(group => group.getID() !== this.getID());
+                // add the group to myGroups
+                GameFuseUser.CurrentUser.groups.unshift(this);
             }
 
             GameFuseUtilities.HandleCallback(
@@ -322,6 +337,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async requestToJoin(callback = undefined) {
         try {
             // don't do the validations here (ex. auto-joinable, etc.), let the backend do it in case something has changed since the group data was pulled.
@@ -339,18 +355,23 @@ class GameFuseGroup {
                     group_connection: {
                         group_id: this.getID(),
                         user_id: GameFuseUser.CurrentUser.getID(),
-                        status: 'pending'
+                        status: 'pending',
+                        action_type: 'join_request'
                     },
-                    action: 'request_to_join'
                 })
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup requestToJoin success');
-
-                let groupJoinRequest = GameFuseJsonHelper.convertJsonTo('GameFuseGroupJoinRequest', response.data);
-                GameFuseUser.CurrentUser.groupJoinRequests.unshift(groupJoinRequest);
+                if(response.data.status === 'accepted'){
+                    // this means that the group was auto-joinable, so the person was automatically made a member. Add this group to their groups.
+                    GameFuseUser.CurrentUser.groups.unshift(this)
+                } else {
+                    // This is the expected behavior. Make a join request object and add it to their join requests.
+                    let groupJoinRequest = GameFuseJsonHelper.convertJsonToGroupJoinRequest(response.data, this, GameFuseUser.CurrentUser);
+                    GameFuseUser.CurrentUser.groupJoinRequests.unshift(groupJoinRequest);
+                }
             }
 
             GameFuseUtilities.HandleCallback(
@@ -365,6 +386,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async invite(userOrUsername, callback = undefined) {
         try {
             let username = (userOrUsername instanceof GameFuseUser) ? userOrUsername.getUsername() : userOrUsername;
@@ -383,17 +405,20 @@ class GameFuseGroup {
                     group_connection: {
                         group_id: this.getID(),
                         inviter_id: GameFuseUser.CurrentUser.getID(),
-                        status: 'pending'
+                        status: 'pending',
+                        action_type: 'invite'
                     },
-                    username: username,
-                    action: 'invite'
+                    username: username
                 })
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup invite sent with success');
-                let groupInvite = GameFuseJsonHelper.convertJsonTo('GameFuseGroupInvite', response.data);
+                let personInvitedObj = userOrUsername instanceof GameFuseUser ? userOrUsername : null;
+                let inviterObj = GameFuseUser.CurrentUser;
+                let groupInvite = GameFuseJsonHelper.convertJsonToGroupInvite(response.data, this, personInvitedObj, inviterObj);
+
                 // add the invite to the group in state
                 let group = GameFuseUser.CurrentUser.getGroups().find(group => group.getID() === this.getID());
                 group.invites.unshift(groupInvite);
@@ -411,6 +436,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async leave(callback = undefined) {
         try {
             GameFuse.Log(`The current user with username ${GameFuseUser.CurrentUser.getUsername()} is leaving group ${this.getName()}`);
@@ -446,6 +472,7 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async removeMember(userToRemove, callback = undefined) {
         try {
             GameFuse.Log(`Removing user with username ${userToRemove?.getUsername()} from group with name ${this.getName()}`);
@@ -484,11 +511,12 @@ class GameFuseGroup {
         }
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async makeMemberAdmin(userObj, callback = undefined) {
         try {
             GameFuse.Log(`Making user with username ${userObj?.getUsername()} an admin for the group with name ${this.getName()}`);
 
-            const url = `${GameFuse.getBaseURL()}/group_connections/make_member_admin`;
+            const url = `${GameFuse.getBaseURL()}/make_group_member_admin`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',
                 headers: {
@@ -504,7 +532,7 @@ class GameFuseGroup {
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup makeMemberAdmin success');
-                // remove the group from myGroups
+                // add this user to the admins list
                 let groupToModify = GameFuseUser.CurrentUser.getGroups().find(group => group.getID() === this.getID());
                 groupToModify.admins.unshift(userObj);
             }

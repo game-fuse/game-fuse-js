@@ -91,9 +91,9 @@ class GameFuseExampleFriendships {
             let outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
             let friendRequestToCancel = outgoingFriendRequests[0]
             Test.expect(outgoingFriendRequests.length).toEqual(1, 'user3 should now have 1 outgoing friend request');
-            Test.expect(friendRequestToCancel.getOtherUser().getUsername()).toEqual(this.user2.getUsername(), 'The friend request to cancel should be with user2')
+            Test.expect(friendRequestToCancel.getOtherUser().getUsername()).toEqual(this.user2.getUsername(), 'The friend request to cancel should be with user2');
 
-            await friendRequestToCancel.cancel(() => { console.log('user3 cancels friend request with user2')});
+            await friendRequestToCancel.cancel(() => { console.log('user3 cancels friend request with user2') });
 
             outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
             Test.expect(outgoingFriendRequests.length, 0, "check that there are no longer any friend requests in user3's outgoing friend request list");

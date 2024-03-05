@@ -1,9 +1,9 @@
 class GameFuseGroupInvite {
 
-    constructor(id, user, group, inviter){
+    constructor(id, group, user, inviter){
         this.id = id;
-        this.user = user;
         this.group = group;
+        this.user = user;
         this.inviter = inviter;
     }
     getID() {
@@ -24,12 +24,13 @@ class GameFuseGroupInvite {
         return this.inviter;
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async update(status, callback = undefined) {
         if(!this.inviteIsForCurrentUser()){
             throw('Only the user who was invited can accept or reject this group invite')
         }
         if(!['accepted', 'declined'].includes(status)){
-
+            throw("Status must be either 'accepted' or 'declined'")
         }
 
         try {
@@ -44,7 +45,8 @@ class GameFuseGroupInvite {
                 },
                 data: JSON.stringify({
                     group_connection: {
-                        status: status
+                        status: status,
+                        action_type: 'update'
                     },
                     connection_type: 'invite'
                 })
@@ -82,6 +84,7 @@ class GameFuseGroupInvite {
         return this.update('declined', callback)
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async cancel(callback = undefined) {
         let currentUserID = GameFuseUser.CurrentUser.getID();
         if (this.getInviter().getID() !== currentUserID) {
@@ -91,7 +94,7 @@ class GameFuseGroupInvite {
         try {
             GameFuse.Log(`canceling group invite`);
 
-            const url = `${GameFuse.getBaseURL()}/group_connections/${this.getID()}`
+            const url = `${GameFuse.getBaseURL()}/group_connections/cancel/${this.getID()}`
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
                 headers: {

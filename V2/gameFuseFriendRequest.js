@@ -42,7 +42,7 @@ class GameFuseFriendRequest {
 
                 // add this friend request to the beginning of the friend requests array
                 GameFuseUser.CurrentUser.outgoingFriendRequests.unshift(
-                    GameFuseJsonHelper.convertJsonTo('GameFuseFriendRequest', response.data)
+                    GameFuseJsonHelper.convertJsonToFriendRequest(response.data)
                 );
             }
 

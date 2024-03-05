@@ -39,7 +39,7 @@
     static async processRequest(url, options) {
         const response = await fetch(url, options);
         let data;
-        if (GameFuseUtilities.RequestIsSuccessful(response)){
+        if (GameFuseUtilities.RequestIsSuccessful(response)) {
             data = await response.json();
         } else {
             data = await response.text();
@@ -51,7 +51,7 @@
 
     static async requestIsOk(response){
         if (response.status.toString()[0] !==  "2") {
-            return false
+            return false;
         }
         return response.ok
     }

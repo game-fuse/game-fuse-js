@@ -1,25 +1,24 @@
 class GameFuseGroupJoinRequest {
 
-    constructor(id, user, group) {
+    constructor(id, group, user) {
         this.id = id;
-        this.user = user;
         this.group = group;
+        this.user = user;
     }
 
     getID() {
         return this.id;
     }
 
-    // TODO: if we are inside of the user, this data will be omitted, so figure out how to get it from here.
     getUser() {
         return this.user;
     }
 
-    // TODO: if we are inside of the group, this data will be omitted, so figure out how to get it from here.
     getGroup() {
         return this.group;
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async update(status, callback = undefined) {
         if(!this.currentUserIsAdmin()){
             throw('Only group admins can accept or reject group join requests')
@@ -37,7 +36,8 @@ class GameFuseGroupJoinRequest {
                 },
                 data: JSON.stringify({
                     group_connection: {
-                        status: status
+                        status: status,
+                        action_type: 'update'
                     },
                     connection_type: 'join_request'
                 })
@@ -76,6 +76,7 @@ class GameFuseGroupJoinRequest {
         return this.update('declined', callback)
     }
 
+    // JSON RESPONSE WRITTEN (todo: remove)
     async cancel(status, callback = undefined) {
         let currentUserID = GameFuseUser.CurrentUser.getID();
         if(currentUserID !== this.getUser().getID()) {
@@ -85,7 +86,7 @@ class GameFuseGroupJoinRequest {
         try {
             GameFuse.Log(`canceling group join request`);
 
-            const url = `${GameFuse.getBaseURL()}/group_connections/${this.getID()}`
+            const url = `${GameFuse.getBaseURL()}/group_connections/cancel/${this.getID()}`
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
                 headers: {

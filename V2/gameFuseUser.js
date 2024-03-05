@@ -419,7 +419,7 @@ class GameFuseUser {
 
                 // loop over the new chats and add them to the chats array, at the end of the array since they are older.
                 response.data.forEach(chatJson => {
-                    this.chats.push(GameFuseJsonHelper.convertJsonTo('GameFuseChat', chatJson));
+                    this.chats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
                 })
             }
 
