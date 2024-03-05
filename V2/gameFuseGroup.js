@@ -126,7 +126,7 @@ class GameFuseGroup {
             if (responseOk) {
                 GameFuse.Log("GameFuseGroup create Success");
                 // add this group to the user's groups array
-                let groupObject = GameFuseJsonHelper.convertJsonToGroup(response.data); // TODO
+                let groupObject = GameFuseJsonHelper.convertJsonToGroup(response.data);
                 GameFuseUser.CurrentUser.groups.unshift(groupObject)
                 GameFuseUser.CurrentUser.downloadedAvailableGroups.unshift(groupObject);
             }
@@ -147,7 +147,8 @@ class GameFuseGroup {
     async update(attributes, callback = undefined) {
         try {
             GameFuse.Log(`Updating group with name ${this.getName()}`);
-
+            debugger;
+            // TODO: in subsequent requests, the current user isn't being treated as an admin because the update action is wiping clean the users array. this is what we were thinking about earlier.
             let currentUserIsAdmin = this.getAdmins().map(user => user.getID()).includes(currentUser().getID())
             if(!currentUserIsAdmin){
                 throw('You must be an admin to update a group!')
@@ -211,7 +212,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -249,7 +250,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -286,7 +287,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -331,7 +332,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -380,7 +381,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -430,7 +431,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -466,7 +467,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -505,7 +506,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
@@ -543,7 +544,7 @@ class GameFuseGroup {
                 callback,
                 !!responseOk
             )
-        } catch {
+        } catch (error) {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }

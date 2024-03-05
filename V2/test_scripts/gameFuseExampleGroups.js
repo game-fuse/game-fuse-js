@@ -29,23 +29,23 @@ class GameFuseExampleGroups {
             let options = { name: 'My Group 1', canAutoJoin: false, isInviteOnly: true, maxGroupSize: 20 }
 
             await Test.test('GameFuseGroup.create(options)', async () => {
-                // TODO: do we need some way to keep this object up to date?
-                this.group1 = await GameFuseGroup.create(options, () => console.log('group1 created'));
+                await GameFuseGroup.create(options, () => console.log('group1 created'));
             })
 
             // get it through the current user to make sure the relations are working correctly
             let createdGroup = currentUser().getGroups()[0];
+            this.group1 = createdGroup; // TODO: can we find some way to keep this object up to date? Or just stop using it. Probably just stop using it.
             Test.expect(createdGroup.getName()).toEqual('My Group 1');
-            Test.expect(createdGroup.getCanAutoJoin()).toEqual(false);
-            Test.expect(createdGroup.getIsInviteOnly()).toEqual(true);
-            Test.expect(createdGroup.getMaxGroupSize()).toEqual(20);
-            Test.expect(createdGroup.getMemberCount()).toEqual(1);
+            Test.expect(createdGroup.getCanAutoJoin()).toEqual(false, 'auto join should be false');
+            Test.expect(createdGroup.getIsInviteOnly()).toEqual(true, 'invite only should be true');
+            Test.expect(createdGroup.getMaxGroupSize()).toEqual(20, 'max group size should be 20');
+            Test.expect(createdGroup.getMemberCount()).toEqual(1, 'member count should be 1');
 
             let meAsMember = createdGroup.getMembers()[0];
-            Test.expect(meAsMember.getUsername()).toEqual(this.user1.getID(), 'I should be a member of the group');
+            Test.expect(meAsMember.getID()).toEqual(this.user1.getID(), 'I should be a member of the group');
 
             let meAsAdmin = createdGroup.getAdmins()[0];
-            Test.expect(meAsAdmin.getUsername()).toEqual(this.user1.getID(), 'I should be an admin of the group');
+            Test.expect(meAsAdmin.getID()).toEqual(this.user1.getID(), 'I should be an admin of the group');
         });
 
         await Test.describe('UPDATE GROUP', async() => {
@@ -56,16 +56,17 @@ class GameFuseExampleGroups {
                 await existingGroup.update(options, () => console.log('group1 updated'));
             })
 
-            // TODO: shouldn't have to re-get this object, should be referencing a memory object and thus updated here too, but check.
-            // existingGroup = currentUser().getGroups()[0];
-            Test.expect(existingGroup.getName()).toEqual('My Cool Group 1');
-            Test.expect(existingGroup.getCanAutoJoin()).toEqual(true);
-            Test.expect(existingGroup.getIsInviteOnly()).toEqual(false);
-            Test.expect(existingGroup.getMaxGroupSize()).toEqual(10);
+            // TODO: do we really always need to get the new object, or should this existing 'this' instance be updated with the new attributes?
+            existingGroup = currentUser().getGroups()[0];
+            Test.expect(existingGroup.getName()).toEqual('My Cool Group 1', 'the new name should be my cool group 1');
+            Test.expect(existingGroup.getCanAutoJoin()).toEqual(true, 'auto join should now be true');
+            Test.expect(existingGroup.getIsInviteOnly()).toEqual(false, 'invite only should now be false');
+            Test.expect(existingGroup.getMaxGroupSize()).toEqual(10, 'max group size should now be 10');
         });
 
         await Test.describe('REQUEST TO JOIN GROUP', async() => {
             let existingGroup = currentUser().getGroups()[0];
+            debugger;
             await existingGroup.update( { canAutoJoin: false }, () => console.log('group1 set to not be auto-joinable, must request invite'));
             await GameFuse.signIn(this.user2.getTestEmail(), 'password', () => console.log('user2 signed in'));
 

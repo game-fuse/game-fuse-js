@@ -88,8 +88,10 @@ class GameFuseJsonHelper {
         )
     }
 
-    static convertJsonToGroup(groupData) {
+    static convertJsonToGroup(groupData, existingObject = undefined) {
         // TODO: don't override the members array if only the top-level attributes have changed. ex. update, show.
+        // TODO: START HERE!!!
+        debugger;
         return new GameFuseGroup(
             groupData.id,
             groupData.name,
@@ -97,16 +99,16 @@ class GameFuseJsonHelper {
             groupData.is_invite_only,
             groupData.max_group_size,
             groupData.member_count,
-            groupData.members == null ? [] : groupData.members.map(memberData => {
+            groupData.members == null && existingObject ? existingObject.members : groupData.members.map(memberData => {
                 return this.convertJsonToUser(memberData);
             }),
-            groupData.admins == null ? [] : groupData.admins.map(adminData => {
+            groupData.admins == null && existingObject ? existingObject.admins : groupData.admins.map(adminData => {
                 return this.convertJsonToUser(adminData);
             }),
-            groupData.joinRequests == null ? [] : groupData.joinRequests.map(joinRequestData => {
+            groupData.joinRequests == null && existingObject ? existingObject.joinRequests : groupData.joinRequests.map(joinRequestData => {
                 return this.convertJsonToGroupJoinRequest(joinRequestData, null, null);
             }),
-            groupData.invites == null ? [] : groupData.invites.map(inviteData => {
+            groupData.invites == null && existingObject ? existingObject.invites : groupData.invites.map(inviteData => {
                 return this.convertJsonToGroupInvite(inviteData, null, null)
             })
         )
