@@ -52,13 +52,13 @@ class GameFuseChat {
             //         group_id: groupId
             //     }
             // }
-
+            let currentUser = GameFuseUser.CurrentUser;
             const url = GameFuse.getBaseURL() + "/chats";
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify(body)
             });
@@ -70,7 +70,7 @@ class GameFuseChat {
 
                 // Add (or replace) the chat to the beginning of the chats array (newest chats go first)
                 // Even if it's an existing chat, we want to replace it since the new chat data from the API will be the most up-to-date version.
-                let currentUser = GameFuseUser.CurrentUser;
+
                 let chatObject = GameFuseJsonHelper.convertJsonToChat(response.data);
                 currentUser.chats = currentUser.chats.filter(chat => chat.getID() !== chatObject.getID());
                 currentUser.chats.unshift(chatObject);

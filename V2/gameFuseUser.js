@@ -356,6 +356,8 @@ class GameFuseUser {
                 throw('You can only remove other users from the friends list, not yourself!')
             }
 
+            let currentUser = GameFuseUser.CurrentUser;
+
             GameFuse.Log("GameFuseFriendRequest unfriend user with username " + this.getUsername());
 
             const url = `${GameFuse.getBaseURL()}/unfriend`;
@@ -367,7 +369,7 @@ class GameFuseUser {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify(data)
             });
@@ -378,7 +380,7 @@ class GameFuseUser {
                 GameFuse.Log("GameFuseUser Unfriending Success");
 
                 // delete the friend from the friends array. Leave them in the UserCache in case they have a chat with them...
-                GameFuseUser.CurrentUser.friends = GameFuseUser.CurrentUser.friends.filter(user => user.getID() !== this.getID())
+                currentUser.friends = currentUser.friends.filter(user => user.getID() !== this.getID())
             }
 
             GameFuseUtilities.HandleCallback(
@@ -493,7 +495,9 @@ class GameFuseUser {
           );
         }
 
-        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/add_game_user_attribute";
+        let currentUser = GameFuseUser.CurrentUser;
+
+        const url = GameFuse.getBaseURL() + "/users/" + currentUser.id + "/add_game_user_attribute";
         const data = {
           key: key,
           value: value
@@ -503,7 +507,7 @@ class GameFuseUser {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': currentUser.getAuthenticationToken()
           },
           body: JSON.stringify(data)
         });
@@ -534,7 +538,9 @@ class GameFuseUser {
           );
         }
 
-        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/add_game_user_attribute";
+        let currentUser = GameFuseUser.CurrentUser;
+
+        const url = GameFuse.getBaseURL() + "/users/" + currentUser.getID() + "/add_game_user_attribute";
 
         const preparedAttributes = Object.entries(this.attributes).map(([key, value]) => ({ key, value }));
         const body = JSON.stringify({"attributes": preparedAttributes });
@@ -543,7 +549,7 @@ class GameFuseUser {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken(),
+            'authentication-token': currentUser.getAuthenticationToken(),
           },
           body: body,
         });
@@ -582,13 +588,16 @@ class GameFuseUser {
           );
         }
 
-        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/remove_game_user_attributes" + `?game_user_attribute_key=${key}`;
+        let currentUser = GameFuseUser.CurrentUser;
+
+
+        const url = GameFuse.getBaseURL() + "/users/" + currentUser.getID() + "/remove_game_user_attributes" + `?game_user_attribute_key=${key}`;
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': currentUser.getAuthenticationToken()
           }
         });
 
@@ -616,12 +625,14 @@ class GameFuseUser {
           );
         }
 
-        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/game_user_store_items";
+        let currentUser = GameFuseUser.CurrentUser;
+
+        const url = GameFuse.getBaseURL() + "/users/" + currentUser.id + "/game_user_store_items";
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': currentUser.getAuthenticationToken()
           }
         });
 
@@ -679,16 +690,18 @@ class GameFuseUser {
           );
         }
 
+        let currentUser = GameFuseUser.CurrentUser;
+
         const form = new FormData();
         form.append("store_item_id", storeItemId.toString());
 
         const url =
-          GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id + "/purchase_game_user_store_item";
+          GameFuse.getBaseURL() + "/users/" + currentUser.id + "/purchase_game_user_store_item";
 
         const response = await GameFuseUtilities.processRequest(url, {
           method: 'POST',
           headers: {
-            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+            'authentication-token': currentUser.getAuthenticationToken()
           },
           body: form
         });

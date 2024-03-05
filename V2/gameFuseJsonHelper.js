@@ -88,75 +88,54 @@ class GameFuseJsonHelper {
         )
     }
 
-    static convertJsonToGroup(groupData, existingObject = undefined) {
+    static convertJsonToGroup(groupData) {
         // TODO: don't override the members array if only the top-level attributes have changed. ex. update, show.
-        // TODO: START HERE!!!
-        debugger;
-        return new GameFuseGroup(
+        let gameFuseGroup = new GameFuseGroup(
             groupData.id,
             groupData.name,
             groupData.can_auto_join,
             groupData.is_invite_only,
             groupData.max_group_size,
             groupData.member_count,
-            groupData.members == null && existingObject ? existingObject.members : groupData.members.map(memberData => {
+            groupData.members == null ? [] : groupData.members.map(memberData => {
                 return this.convertJsonToUser(memberData);
             }),
-            groupData.admins == null && existingObject ? existingObject.admins : groupData.admins.map(adminData => {
+            groupData.admins == null ? [] : groupData.admins.map(adminData => {
                 return this.convertJsonToUser(adminData);
-            }),
-            groupData.joinRequests == null && existingObject ? existingObject.joinRequests : groupData.joinRequests.map(joinRequestData => {
-                return this.convertJsonToGroupJoinRequest(joinRequestData, null, null);
-            }),
-            groupData.invites == null && existingObject ? existingObject.invites : groupData.invites.map(inviteData => {
-                return this.convertJsonToGroupInvite(inviteData, null, null)
             })
-        )
+        );
+
+        // do this here after instantiating the object so that we can pass in the group object
+        gameFuseGroup.joinRequests = groupData.join_requests == null ? [] : groupData.join_requests.map(joinRequestData => {
+            return this.convertJsonToGroupJoinRequest(joinRequestData, gameFuseGroup, null);
+        })
+
+        groupData.invites = groupData.invites == null ? [] : groupData.invites.map(inviteData => {
+            return this.convertJsonToGroupInvite(inviteData, gameFuseGroup, null)
+        });
+
+        return gameFuseGroup;
     }
 
     static convertJsonToGroupInvite(groupInviteData, groupObj, userInvitedObj, inviterObj) {
-        // TODO: DOES THE BELOW COMMENTARY STILL APPLY?
-        // if this is inside of a user, the user data will be omitted.
-        // if it is inside of a group, the group data will be omitted.
-
-        if(groupObj){
-            // this means the objects are passed in manually, since we already have them.
-            return new GameFuseGroupInvite(
-                groupInviteData.id,
-                groupObj,
-                userInvitedObj,
-                inviterObj
-            )
-        } else {
-            // this means the data is passed in from the API. As of now, from the sign-in method.
-            return new GameFuseGroupInvite(
-                groupInviteData.id,
-                this.convertJsonToGroup(groupInviteData.group),
-                this.convertJsonToUser(groupInviteData.user, false),
-                this.convertJsonToUser(groupInviteData.inviter, false)
-            )
-        }
+        // sometimes the objects are passed in manually, since we already have them. sometimes data is from the api, like sign-in method and group.downloadFullData.
+        return new GameFuseGroupInvite(
+            groupInviteData.id,
+            groupObj == null ? this.convertJsonToGroup(groupInviteData.group) : groupObj,
+            userInvitedObj == null ? this.convertJsonToUser(groupInviteData.user, false) : userInvitedObj,
+            inviterObj == null ? this.convertJsonToUser(groupInviteData.inviter, false) : inviterObj
+        )
     }
 
     static convertJsonToGroupJoinRequest(groupJoinRequestData, groupObj, userObj) {
-        // TODO: DOES THE BELOW COMMENTARY STILL APPLY?
-        // if this is inside of a user, the user data will be omitted.
-        // if it is inside of a group, the group data will be omitted.
-        if(groupObj){
-            // this means the objects are passed in manually, since we already have them.
-            return new GameFuseGroupJoinRequest(
-                groupJoinRequestData.id,
-                groupObj,
-                userObj
-            )
-        } else {
-            // this means the data is passed in from the API. As of now, from the sign-in method.
-            return new GameFuseGroupInvite(
-                groupJoinRequestData.id,
-                this.convertJsonToGroup(groupJoinRequestData.group),
-                this.convertJsonToUser(groupJoinRequestData.user, false)
-            )
-        }
+        // sometimes the objects are passed in manually, since we already have them.
+        // Ex. group.requestToJoin, we already have the current user and the group, so we pass it in.
+        // sometimes the data is passed in from the API. ex. the sign-in response, or downloadFullData.
+        return new GameFuseGroupJoinRequest(
+            groupJoinRequestData.id,
+            groupObj == null ? this.convertJsonToGroup(groupJoinRequestData.group) : groupObj,
+            userObj == null ? this.convertJsonToUser(groupJoinRequestData.user, false) : userObj
+        )
     }
 
     static setRelationalDataInternal(apiData){

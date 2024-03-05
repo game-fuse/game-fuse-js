@@ -11,11 +11,13 @@ class GameFuseGroupInvite {
     }
 
     // TODO: if we are inside of the user, this data will be omitted, so figure out how to get it from here.
+    // TODO: go through the places where this object is constructed and verify if the above statement is true or not.
     getUser() {
         return this.user;
     }
 
     // TODO: if we are inside of the group, this data will be omitted, so figure out how to get it from here.
+    // TODO: go through the places where this object is constructed and verify if the above statement is true or not.
     getGroup() {
         return this.group;
     }
@@ -24,7 +26,6 @@ class GameFuseGroupInvite {
         return this.inviter;
     }
 
-    // JSON RESPONSE WRITTEN (todo: remove)
     async update(status, callback = undefined) {
         if(!this.inviteIsForCurrentUser()){
             throw('Only the user who was invited can accept or reject this group invite')
@@ -35,15 +36,15 @@ class GameFuseGroupInvite {
 
         try {
             GameFuse.Log(`updating group invite to ${status}`);
-
+            let currentUser = GameFuseUser.CurrentUser;
             const url = `${GameFuse.getBaseURL()}/group_connections/${this.getID()}`
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 },
-                data: JSON.stringify({
+                body: JSON.stringify({
                     group_connection: {
                         status: status,
                         action_type: 'update'
@@ -56,11 +57,14 @@ class GameFuseGroupInvite {
             if (responseOk) {
                 GameFuse.Log("GameFuseGroup update group invite successful");
 
-                // regardless of whether status is 'accepted' or 'rejected', remove invite from the user.
-                GameFuseUser.CurrentUser.groupInvites = GameFuseUser.CurrentUser.groupInvites.filter(invite => invite.getID() !== this.getID());
+                // regardless of whether status is 'accepted' or 'rejected', remove invite from the user and the group.
+                let group = this.getGroup();
+                currentUser.groupInvites = currentUser.groupInvites.filter(invite => invite.getID() !== this.getID());
+                group.invites = group.invites.filter(invite => invite.getID() !== this.getID());
                 if(status === 'accepted'){
-                    // if they accepted the invite, add this group to their groups array in state.
-                    GameFuseUser.CurrentUser.groups.unshift(this.getGroup());
+                    currentUser.groups.unshift(group); // add this group to the current user's group array
+                    group.members.unshift(currentUser); // add this current user to the group's members array
+                    group.memberCount += 1; // bump the member count by 1
                 }
             }
 
@@ -84,10 +88,9 @@ class GameFuseGroupInvite {
         return this.update('declined', callback)
     }
 
-    // JSON RESPONSE WRITTEN (todo: remove)
     async cancel(callback = undefined) {
-        let currentUserID = GameFuseUser.CurrentUser.getID();
-        if (this.getInviter().getID() !== currentUserID) {
+        let currentUser = GameFuseUser.CurrentUser;
+        if (this.getInviter().getID() !== currentUser.getID()) {
             throw ('Only the user who invited this person can cancel the invite!')
         }
 
@@ -99,7 +102,7 @@ class GameFuseGroupInvite {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify({
                     connection_type: 'invite'
@@ -108,10 +111,10 @@ class GameFuseGroupInvite {
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
-                GameFuse.Log('GameFuseGroupInvite deleted successfully');
+                GameFuse.Log('GameFuseGroupInvite cancelled successfully');
 
                 // remove the invite from the group's array
-                let group = GameFuseUser.CurrentUser.getGroups().find(group => group.getID() === this.getGroup().getID());
+                let group = this.getGroup(); // TODO: will this group object always be the same one that is in the other arrays??
                 group.invites = group.invites.filter(invite => invite.getID() !== this.getID());
             }
 

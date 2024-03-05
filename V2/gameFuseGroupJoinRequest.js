@@ -18,7 +18,6 @@ class GameFuseGroupJoinRequest {
         return this.group;
     }
 
-    // JSON RESPONSE WRITTEN (todo: remove)
     async update(status, callback = undefined) {
         if(!this.currentUserIsAdmin()){
             throw('Only group admins can accept or reject group join requests')
@@ -27,6 +26,7 @@ class GameFuseGroupJoinRequest {
         try {
             GameFuse.Log(`updating group join request to ${status}`);
 
+
             const url = `${GameFuse.getBaseURL()}/group_connections/${this.getID()}`
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',
@@ -34,7 +34,7 @@ class GameFuseGroupJoinRequest {
                     'Content-Type': 'application/json',
                     'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 },
-                data: JSON.stringify({
+                body: JSON.stringify({
                     group_connection: {
                         status: status,
                         action_type: 'update'
@@ -47,12 +47,14 @@ class GameFuseGroupJoinRequest {
             if (responseOk) {
                 GameFuse.Log("GameFuseGroup update group connection successful");
 
-                // regardless of whether status is 'accepted' or 'declined', remove invite from group.
-                let group = GameFuseUser.CurrentUser.getGroups().find(group => group.getID() === this.getGroup().getID());
+                // regardless of whether status is 'accepted' or 'declined', remove join request from group.
+                let group = this.getGroup();
                 group.joinRequests = group.joinRequests.filter(joinRequest => joinRequest.getID() !== this.getID());
                 if(status === 'accepted'){
-                    // add the user to the group members state array
-                    group.members.unshift(group.getUser());
+                    // add the user to the group members state array, bump up the member count.
+                    let user = this.getUser();
+                    group.members.unshift(user);
+                    group.memberCount += 1;
                 }
             }
 
@@ -76,10 +78,9 @@ class GameFuseGroupJoinRequest {
         return this.update('declined', callback)
     }
 
-    // JSON RESPONSE WRITTEN (todo: remove)
     async cancel(status, callback = undefined) {
-        let currentUserID = GameFuseUser.CurrentUser.getID();
-        if(currentUserID !== this.getUser().getID()) {
+        let currentUser = GameFuseUser.CurrentUser;
+        if(currentUser.getID() !== this.getUser().getID()) {
             throw('Only the person who sent this join request can cancel it!')
         }
 
@@ -91,7 +92,7 @@ class GameFuseGroupJoinRequest {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify({
                     connection_type: 'join_request'
@@ -103,7 +104,7 @@ class GameFuseGroupJoinRequest {
                 GameFuse.Log('GameFuseGroupJoinRequest deleted successfully');
 
                 // remove join request from user's array
-                GameFuseUser.CurrentUser.joinRequests = GameFuseUser.CurrentUser.joinRequests.filter(joinRequest => joinRequest.getID() !== this.getID());
+                currentUser.groupJoinRequests = currentUser.groupJoinRequests.filter(joinRequest => joinRequest.getID() !== this.getID());
             }
 
             GameFuseUtilities.HandleCallback(

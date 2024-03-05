@@ -20,7 +20,9 @@ class GameFuseFriendRequest {
     // Send a friend request
     static async send(username, callback = undefined) {
         try {
-            if(GameFuseUser.CurrentUser.getUsername() === username) {
+            let currentUser = GameFuseUser.CurrentUser;
+
+            if(currentUser.getUsername() === username) {
                 throw('Cannot send a friend request to yourself!')
             }
 
@@ -31,7 +33,7 @@ class GameFuseFriendRequest {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify({ username: username })
             });
@@ -41,7 +43,7 @@ class GameFuseFriendRequest {
                 GameFuse.Log("GameFuseUser Get Friends Success");
 
                 // add this friend request to the beginning of the friend requests array
-                GameFuseUser.CurrentUser.outgoingFriendRequests.unshift(
+                currentUser.outgoingFriendRequests.unshift(
                     GameFuseJsonHelper.convertJsonToFriendRequest(response.data)
                 );
             }
@@ -63,12 +65,13 @@ class GameFuseFriendRequest {
         try {
             GameFuse.Log(`GameFuseFriendRequest Cancel Friend Request with the user of username ${this.getOtherUser().getUsername()}`);
             const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipID();
+            let currentUser = GameFuseUser.CurrentUser;
 
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 }
             });
 
@@ -78,7 +81,7 @@ class GameFuseFriendRequest {
                 GameFuse.Log("GameFuseUser Cancel Friend Request Success");
 
                 // remove this friendship from the friend requests list
-                GameFuseUser.CurrentUser.outgoingFriendRequests = GameFuseUser.CurrentUser.outgoingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID())
+                currentUser.outgoingFriendRequests = currentUser.outgoingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID())
             }
 
             GameFuseUtilities.HandleCallback(
@@ -114,11 +117,13 @@ class GameFuseFriendRequest {
                 }
             };
 
+            let currentUser = GameFuseUser.CurrentUser;
+
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': currentUser.getAuthenticationToken()
                 },
                 body: JSON.stringify(data)
             });
@@ -127,11 +132,11 @@ class GameFuseFriendRequest {
             if (responseOk) {
                 GameFuse.Log("GameFuseUser Get Friends Success");
                 // remove from friend requests
-                GameFuseUser.CurrentUser.incomingFriendRequests = GameFuseUser.CurrentUser.incomingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID());
+                currentUser.incomingFriendRequests = currentUser.incomingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID());
 
                 if(acceptedOrDeclined === 'accepted'){
                     // add the user to the friends list, at the beginning
-                    GameFuseUser.CurrentUser.friends.unshift(this.getOtherUser()); // otherUser is a reference to the UserCache object
+                    currentUser.friends.unshift(this.getOtherUser()); // otherUser is a reference to the UserCache object
                 }
             }
 
