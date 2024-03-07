@@ -282,8 +282,9 @@ class GameFuseGroup {
                 });
 
                 // handle join requests and invites after assigning the above attributes so that we can pass in the updated object instance to create these objects
-                this.joinRequests = data.join_requests.map(joinRequestData => GameFuseJsonHelper.convertJsonToGroupJoinRequest(joinRequestData, this, null));
-                this.invites = data.invites.map(inviteData => GameFuseJsonHelper.convertJsonToGroupInvite(inviteData, this, null));
+                // this data will not be returned if the current user isn't an admin of the group.
+                if(data.join_requests) { this.joinRequests = data.join_requests.map(joinRequestData => GameFuseJsonHelper.convertJsonToGroupJoinRequest(joinRequestData, this, null)); }
+                if(data.invites) { this.invites = data.invites.map(inviteData => GameFuseJsonHelper.convertJsonToGroupInvite(inviteData, this, null)); }
             }
 
             GameFuseUtilities.HandleCallback(

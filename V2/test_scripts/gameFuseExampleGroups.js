@@ -2,32 +2,22 @@ const Test = GameFuseTestingUtilities;
 const currentUser = () => GameFuseUser.CurrentUser;
 
 class GameFuseExampleGroups {
-    constructor(token, id) {
-        this.gameToken = token;
-        this.gameID = id;
+    constructor() {
     }
 
     start() {
-        GameFuseTestingUtilities.startTest(this.testGroups.bind(this), this)
+        Test.startTest(this.testGroups.bind(this), this)
     }
-
-    end() {
-        GameFuseTestingUtilities.endTest(this)
-    }
-
-    // TODO: read through this and make sure that there are no places where we are forgetting to downloadFullData, which could potentially cause an error.
-
-    // TODO: make sure all expectations have a stringified explanation of what is being expected (makes it easier to track down the line of code if it fails)
-
-    // TODO: add a test for when they attempt to make a join request, but the group is already auto joinable
-    //  -- it should just add the group to their groups array, and there should be no join request added to their array.
 
     async testGroups() {
         console.log('WE ARE UP AND RUNNING BABY')
-        // 1. Create a new group (pass in options, like name, invite only, auto-join vs acceptance, max group size, etc.??)
-        for (let i = 6; i >= 1; i--) {
-            this[`user${i}`] = await Test.signUpUser(() => { console.log(`signed up user ${i}`)});
+
+        // Create a new group (pass in options, like name, invite only, auto-join vs acceptance, max group size, etc.??)
+        for (let userNumber = 6; userNumber >= 1; userNumber--) {
+            this[`user${userNumber}`] = await Test.createUser(() => { console.log(`signed up user ${userNumber}`)});
         }
+
+        await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('user1 signed in'));
 
         await Test.describe('CREATE GROUP', async() => {
             let options = { name: 'My Group 1', canAutoJoin: false, isInviteOnly: true, maxGroupSize: 20 }
@@ -96,7 +86,7 @@ class GameFuseExampleGroups {
                 await joinRequests[0].accept(() => console.log('user1 group admin accepted user2 join request'));
             })
 
-            Test.expect(group.getJoinRequests().length).toEqual(0);
+            Test.expect(group.getJoinRequests().length).toEqual(0, 'the group should not have any join requests in it');
 
             let groupMembers = group.getMembers();
             Test.expect(groupMembers.length).toEqual(2, 'there should be 2 members');
@@ -105,7 +95,7 @@ class GameFuseExampleGroups {
             let actualMembers = JSON.stringify(groupMembers.map(member => member.getID()).sort());
             let expectedMembers = JSON.stringify([this.user1.getID(), this.user2.getID()].sort());
 
-            Test.expect(actualMembers).toEqual(expectedMembers);
+            Test.expect(actualMembers).toEqual(expectedMembers, 'the members in the group should be users 1 and 2');
 
             const findUser2 = (users) => users.find(user => user.getID() === this.user2.getID());
 
@@ -125,19 +115,18 @@ class GameFuseExampleGroups {
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {})
             await group.downloadFullData(() => console.log('downloaded full data for the group'));
 
-            // let joinRequests = currentUser().getGroups()[0].getJoinRequests();
             let joinRequests = group.getJoinRequests();
 
-            Test.expect(joinRequests.length).toEqual(1);
+            Test.expect(joinRequests.length).toEqual(1, 'there should now be 1 join request in the group');
 
             await Test.test('groupJoinRequest.decline()', async() => {
                 await joinRequests[0].decline(() => console.log('user1 group admin declined user3 join request'));
             })
 
-            Test.expect(group.getJoinRequests().length).toEqual(0);
+            Test.expect(group.getJoinRequests().length).toEqual(0, 'there should be no join requests in the group');
             let groupMembers = group.getMembers();
-            Test.expect(groupMembers.length).toEqual(2);
-            Test.expect(group.getMemberCount()).toEqual(2);
+            Test.expect(groupMembers.length).toEqual(2, 'there should be 2 members in the group');
+            Test.expect(group.getMemberCount()).toEqual(2, 'the memberCount should be 2');
             Test.expect(JSON.stringify(groupMembers.map(member => member.getID()).sort())).toEqual(JSON.stringify([this.user1.getID(), this.user2.getID()].sort()), 'The same 2 group members should still be there, without user3')
         });
 
@@ -219,7 +208,7 @@ class GameFuseExampleGroups {
             Test.expect(user5AsMember).notToEqual(undefined, 'user5 should now be a group member');
 
             let user5AsAdmin = findUser5(myGroups[0].getAdmins());
-            Test.expect(user5AsAdmin).toEqual(undefined, 'I should not be a group admin');
+            Test.expect(user5AsAdmin).toEqual(undefined, 'User5 should not be a group admin');
         });
 
         await Test.describe('DECLINE GROUP INVITE', async() => {
@@ -241,7 +230,10 @@ class GameFuseExampleGroups {
         await Test.describe('LEAVE GROUP', async() => {
             // expect/ensure that user2 is currently in the group
             let group = currentUser().getGroups()[0];
-            Test.expect(group.getMembers().find(member => member.getUsername() === this.user2.getUsername()));
+            await group.downloadFullData(() => console.log('downloaded full data for group'));
+            const findUser2 = (users) => users.find(user => user.getID() === this.user2.getID());
+
+            Test.expect(findUser2(group.getMembers())).notToEqual(undefined, 'User 2 should be a member of the group')
 
             // user2 signs in and leaves
             await GameFuse.signIn(this.user2.getTestEmail(), 'password', () => {});
@@ -256,7 +248,8 @@ class GameFuseExampleGroups {
             // user1 signs in and doesn't see user2 in the members array
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {});
             group = currentUser().getGroups()[0]
-            Test.expect(group.getMembers().find(member => member.getUsername() === this.user2.getUsername())).toEqual(undefined, 'User2 should no longer show up in the group members array');
+            await group.downloadFullData(() => console.log('downloaded full data for group'));
+            Test.expect(findUser2(group.getMembers())).toEqual(undefined, 'User2 should no longer show up in the group members array');
         });
 
         await Test.describe('JOIN A GROUP (auto-joinable group, no invite required)', async() => {
@@ -331,7 +324,8 @@ class GameFuseExampleGroups {
             });
 
             Test.expect(currentUser().getGroups().length).toEqual(0, 'User5 should not be in any groups (i.e. the action should have been unsuccessful)');
-            Test.expect(group.getMembers().find(member => member.getID() === this.user5.getID())).toEqual(undefined, 'group1 should not contain user5 in its members array');
+            let user5AsMember = group.getMembers().find(member => member.getID() === this.user5.getID())
+            Test.expect(user5AsMember).toEqual(undefined, 'group1 should not contain user5 in its members array');
         });
 
         await Test.describe('LIST AVAILABLE GROUPS', async() => {
@@ -370,21 +364,28 @@ class GameFuseExampleGroups {
         await Test.describe('DESTROY GROUP', async() => {
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {});
             let group = currentUser().getGroups()[0];
+            let groupID = group.getID();
 
             await Test.test('group.destroy()', async () => {
-                group.destroy(() => console.log('group 1 destroyed'));
+                await group.downloadFullData(() => console.log('got full data for group'));
+                await group.destroy(() => console.log('group 1 destroyed'));
             })
 
-            let group1InState = currentUser().getGroups().find(group => group.getName() === 'My Cool Group 1')
+            let group1InState = currentUser().getGroups().find(group => group.getID() === groupID)
 
             Test.expect(group1InState).toEqual(undefined, 'This group should no longer exist in my group info since we just destroyed it.')
         });
+
+        await Test.cleanUpTest(this, () => console.log('done cleaning up test data'));
+
+        // Hallelujah!
+        console.log("SUCCESS!! WE MADE IT TO THE END OF OF THE GROUPS TEST SCRIPT WITH NO ERRORS.")
 
         // TODO: move this into a test script for users, it doesn't quite belong here.
         // TEST USER DOWNLOAD FULL DATA
     }
 }
 
-const example = new GameFuseExampleGroups(ENV.gameToken, ENV.gameId);
+const example = new GameFuseExampleGroups();
 
 example.start()

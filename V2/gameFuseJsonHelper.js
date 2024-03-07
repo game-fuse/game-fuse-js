@@ -30,7 +30,7 @@ class GameFuseJsonHelper {
             purchasedStoreItems,
             leaderboardEntries,
             userData.friendship_id,
-            userData.id !== GameFuseUser.CurrentUser.getID() // will be 'true' if they are not equal (that is, isOtherUser => true)
+            userData.id !== GameFuseUser.CurrentUser?.getID() // will be 'true' if they are not equal (that is, isOtherUser => true)
         );
 
         GameFuseUser.UserCache[userData.id] = userObj;

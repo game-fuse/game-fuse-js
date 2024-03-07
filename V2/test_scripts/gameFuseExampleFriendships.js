@@ -12,18 +12,9 @@ class GameFuseExampleFriendships {
     }
 
     async testFriendships() {
-        // console.log(0)
-        // await Test.myNormalMethod()
-        // console.log(3)
-        // await Test.sleep(2000)
-        // console.log(4)
-        // await Test.sleep(2000)
-        // console.log(5)
-        // throw('stop the test here');
-
         // 1. Sign up 5 users
-        for(let i = 1; i <= 5; i++){
-            this[`user${i}`] = await Test.signUpUser();
+        for(let userNumber = 1; userNumber <= 5; userNumber++){
+            this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
         }
 
         await Test.describe('SENDING FRIEND REQUESTS', async() => {
@@ -120,6 +111,8 @@ class GameFuseExampleFriendships {
             friends = GameFuseUser.CurrentUser.getFriends();
             Test.expect(friends.length).toEqual(0, 'user1 should have 0 friends');
         })
+
+        await Test.cleanUpTest(this, () => console.log('done cleaning up test data'));
 
         // We've made it. Hallelujah!
         console.log("SUCCESS!! WE MADE IT TO THE END OF OF THE FRIENDSHIP TEST SCRIPT WITH NO ERRORS.")

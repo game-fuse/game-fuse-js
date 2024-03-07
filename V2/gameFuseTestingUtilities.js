@@ -1,19 +1,8 @@
 class GameFuseTestingUtilities {
 
-    static sleep(delay) {
-        return new Promise((resolve) => setTimeout(resolve, delay) )
-    }
-
-    static myNormalMethod() {
-        console.log(1)
-        return this.someAsyncMethod();
-    }
-
-    static async someAsyncMethod(){
-        for(let i = 0; i < 200; i++){
-            console.log(i);
-        }
-    }
+    // static sleep(delay) {
+    //     return new Promise((resolve) => setTimeout(resolve, delay) )
+    // }
 
     static expect(actual) {
         return {
@@ -62,35 +51,120 @@ class GameFuseTestingUtilities {
         return callback()
     }
 
-    static async signUpUser(){
-        let random = Math.floor(Math.random() * 1000000000000);
-        let username = `user${random}`;
-        let email = `${username}@mundo.com`;
+    static async startTest(testMethod, testClassInstance){
+        await Test.setupTestGame(testClassInstance, () => console.log('created game and set values'))
 
-        await GameFuse.signUp(email, "password", "password", username, () => { })
+        if (testClassInstance.gameToken && testClassInstance.gameID) {
+            console.log("GameFuse start");
 
-        return new GameFuseUser(false, 0, undefined, undefined, username, 0, 0, GameFuseUser.CurrentUser.getID(), {}, [], [], undefined, true)
-    }
-
-    static startTest(testMethod, testClassInstance){
-        if (testClassInstance.gameToken === "" || testClassInstance.gameID === "") {
+            GameFuse.setVerboseLogging(false);
+            GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, testMethod, true);
+        } else {
             console.log(
                 "Add ID and Token",
                 "Please add your token and ID, if you do not have one, you can create a free account from gamefuse.co",
                 "OK"
             );
             throw new Error("Token and ID Invalid");
-        } else {
-            console.log("GameFuse start");
-
-            GameFuse.setVerboseLogging(false);
-            GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, testMethod, true);
         }
     }
 
-    static endTest(testClassInstance) {
-        // make a call to API [auth with service key] and testClassInstance.testSessionID
+    static async createUser(callback = undefined) {
+        try {
+            let random = Math.floor(Math.random() * 1000000000000);
+            let username = `user${random}`;
+            let email = `${username}@mundo.com`;
 
-        // api will clean up all data that has that testSessionID
+            let data = {
+                email: email,
+                username: username
+            }
+
+            GameFuse.Log('Setting up game');
+
+            const url = `${GameFuse.getBaseURL()}/test_suite/create_user`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'service-key': ENV.serviceToken
+                },
+                body: JSON.stringify(data)
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response)
+            if (responseOk) {
+                callback();
+                return GameFuseJsonHelper.convertJsonToUser(response.data, true);;
+            } else {
+                throw('somethign went wrong while creating this user!')
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    static async setupTestGame(testClassInstance, callback) {
+        try {
+            GameFuse.Log('Setting up game');
+
+            const url = `${GameFuse.getBaseURL()}/test_suite/create_game`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'service-key': ENV.serviceToken
+                }
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response)
+            if (responseOk) {
+                GameFuse.Log("GameFuseUser create game success");
+                testClassInstance.gameID = response.data.id;
+                testClassInstance.gameToken = response.data.token;
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? 'Game setup successfully' : response.data,
+                callback,
+                responseOk
+            )
+        } catch (error) {
+            console.log(error)
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
+    }
+
+    static async cleanUpTest(testClassInstance, callback) {
+        try {
+            GameFuse.Log('Setting up game');
+
+            const url = `${GameFuse.getBaseURL()}/test_suite/clean_up_test`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'service-key': ENV.serviceToken
+                }
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response)
+            if (responseOk) {
+                GameFuse.Log("Cleaned up test data");
+                testClassInstance.gameID = null;
+                testClassInstance.gameToken = null;
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? 'Cleaned up test data' : response.data,
+                callback,
+                responseOk
+            )
+        } catch (error) {
+            console.log(error)
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
     }
 }

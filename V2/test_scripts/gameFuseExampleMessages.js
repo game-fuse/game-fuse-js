@@ -14,11 +14,13 @@ class GameFuseExampleMessages {
 
     async testMessaging(message, hasError) {
         // sign up 3 users, in reverse order so we end with user1 signed in
-        for(let i = 3; i >= 1; i--){
-            this[`user${i}`] = await Test.signUpUser();
+        for(let userNumber = 3; userNumber >= 1; userNumber--){
+            this[`user${userNumber}`] = await Test.createUser(() => console.log(`created user ${userNumber}`));
         }
 
-        await Test.test('User1 sends a messages to user2 (creating a new chat)', async () => {
+        await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('signed in user1'));
+
+        await Test.test('User1 sends a message to user2 (thereby creating a new chat)', async () => {
             // Send a message to user2, using the user object method; check that the chat data is there.
             await this.user2.sendMessage('Hello, my name is Michael.', () => { console.log('Sent a message to user2 (userObj.sendMessage)') });
             let chats = currentUser().getChats();
@@ -96,11 +98,12 @@ class GameFuseExampleMessages {
         await Test.describe('Get 2nd page of older chats', async () => {
 
             await Test.test('25 different users create chats with user1 (to test pagination)', async () => {
-                for(let i = 4; i <= 28; i++) {
-                    this[`user${i}`] = await Test.signUpUser();
+                for(let userNumber = 4; userNumber <= 28; userNumber++) {
+                    this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
+                    await GameFuse.signIn(this[`user${userNumber}`].getTestEmail(), 'password', () => console.log(`signed in user ${userNumber}`));
                     // test with both user object and username. If odd, pass username, if even, pass user object
-                    let objToPass = i % 2 === 0 ? this.user1 : this.user1.getUsername();
-                    await GameFuseChat.sendMessage(objToPass, `message ${i} in loop`, () => { console.log(`created chat+message ${i}`) });
+                    let objToPass = userNumber % 2 === 0 ? this.user1 : this.user1.getUsername();
+                    await GameFuseChat.sendMessage(objToPass, `message ${userNumber} in loop`, () => { console.log(`created chat+message ${userNumber}`) });
                 }
             })
 
@@ -110,6 +113,8 @@ class GameFuseExampleMessages {
             await currentUser().getOlderChats(2, () => { console.log('got the 2nd page of chats') });
             Test.expect(currentUser().getChats().length).toEqual(27, 'There should now be all 27 chats in the array after getting the rest of the chats from the API');
         })
+
+        await Test.cleanUpTest(this, () => console.log('done cleaning up test data'));
 
         // Hallelujah!
         console.log("Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE MESSAGING TEST SCRIPT WITH NO ERRORS.")
