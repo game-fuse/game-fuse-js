@@ -22,7 +22,8 @@ class GameFuseUser {
         this.friendshipId = friendshipId;
 
         // start relational data. These get set when the response arrives back from the signIn method. See: setRelationalDataInternal
-        this.chats = [];
+        this.directChats = [];
+        this.groupChats = [];
         this.groups = [];
         this.groupInvites = [];
         this.groupJoinRequests = [];
@@ -148,8 +149,12 @@ class GameFuseUser {
         return this.friendshipId;
     }
 
-    getChats() {
-        return this.chats;
+    getDirectChats() {
+        return this.directChats;
+    }
+
+    getGroupChats() {
+        return this.groupChats;
     }
 
     getID() {
@@ -431,8 +436,12 @@ class GameFuseUser {
                 GameFuse.Log("GameFuseChat getOlderChats success");
 
                 // loop over the new chats and add them to the chats array, at the end of the array since they are older.
-                response.data.forEach(chatJson => {
-                    this.chats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
+                response.data.direct_chats.forEach(chatJson => {
+                    this.directChats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
+                })
+
+                response.data.group_chats.forEach(chatJson => {
+                    this.groupChats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
                 })
             }
 
@@ -448,12 +457,12 @@ class GameFuseUser {
         }
     }
 
-    sendMessage(firstMessage, callback = undefined) {
+    sendMessage(message, callback = undefined) {
         if(!this.getIsOtherUser()){
             throw('Cannot send a message to yourself!');
         }
 
-        return GameFuseChat.sendMessage(this.getUsername(), firstMessage, callback)
+        return GameFuseChat.sendMessage(this.getUsername(), message, callback)
     }
 
     async inviteToGroup(group, callback= undefined) {

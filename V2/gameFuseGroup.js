@@ -554,4 +554,8 @@ class GameFuseGroup {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
     }
+
+    async sendMessage(message, callback = undefined) {
+        return GameFuseChat.sendMessage(this, message, callback)
+    }
 }

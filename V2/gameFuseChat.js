@@ -18,9 +18,7 @@ class GameFuseChat {
     }
 
     // Use this method to create a new chat object (although it will add to the existing chat appropriately if the chat already exists).
-    // recipients => array of either usernames or user objects with whom the chat should be, or a group (coming soon).
-    // TODO: can also be a group. Or some other type of "group". this will come once we have groups.
-    //      it will be an instance method on group, called sendMessage, which will call this method with Group as the recipient.
+    // recipients => array of either usernames, user objects, or a group
     static async sendMessage(recipients, firstMessage, callback = undefined){
         try {
             recipients = Array.isArray(recipients) ? recipients : [recipients]
@@ -29,29 +27,26 @@ class GameFuseChat {
                 usernames = recipients;
             } else if (recipients.every(recipient => recipient instanceof GameFuseUser)) {
                 usernames = recipients.map(user => user.getUsername());
-            // } else if (recipients.every(recipient => recipient instanceof GameFuseGroup)) {
-            //     TODO: THIS BLOCK COMING SOON
-            //     groupId = recipients[0].getId();
+            } else if (recipients.every(recipient => recipient instanceof GameFuseGroup)) {
+                groupId = recipients[0].getID();
             } else {
                 throw('All recipients passed must be of the same type: IDs, usernames, or GameFuseUser objects')
             }
 
             // NOTE: current user's username gets added on the backend if it is not already in the recipients parameter.
-            
-            // let body;
-            // if(usernames !== undefined){ //
-            let body = {
-                text: firstMessage,
-                usernames: usernames,
+            let body;
+            if(usernames !== undefined){
+                body = {
+                    text: firstMessage,
+                    usernames: usernames,
+                }
+            } else {
+                // for a group
+                body = {
+                    text: firstMessage,
+                    group_id: groupId
+                }
             }
-            // TODO: this block coming soon
-            // } else {
-            //     // for a group.
-            //     body = {
-            //         text: firstMessage,
-            //         group_id: groupId
-            //     }
-            // }
             let currentUser = GameFuseUser.CurrentUser;
             const url = GameFuse.getBaseURL() + "/chats";
             const response = await GameFuseUtilities.processRequest(url, {
@@ -70,10 +65,16 @@ class GameFuseChat {
 
                 // Add (or replace) the chat to the beginning of the chats array (newest chats go first)
                 // Even if it's an existing chat, we want to replace it since the new chat data from the API will be the most up-to-date version.
-
                 let chatObject = GameFuseJsonHelper.convertJsonToChat(response.data);
-                currentUser.chats = currentUser.chats.filter(chat => chat.getID() !== chatObject.getID());
-                currentUser.chats.unshift(chatObject);
+                if(response.data.creator_type === 'Group'){
+                    // group chat
+                    currentUser.groupChats = currentUser.groupChats.filter(chat => chat.getID() !== chatObject.getID());
+                    currentUser.groupChats.unshift(chatObject);
+                } else {
+                    // direct chat
+                    currentUser.directChats = currentUser.directChats.filter(chat => chat.getID() !== chatObject.getID());
+                    currentUser.directChats.unshift(chatObject);
+                }
             }
 
             GameFuseUtilities.HandleCallback(

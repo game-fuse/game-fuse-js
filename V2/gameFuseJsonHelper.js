@@ -147,7 +147,8 @@ class GameFuseJsonHelper {
         let friendsData = apiData.friends;
         let incomingFriendReqData = apiData.incoming_friend_requests;
         let outgoingFriendReqData = apiData.outgoing_friend_requests
-        let chatsData = apiData.chats;
+        let directChats = apiData.direct_chats;
+        let groupChats = apiData.group_chats;
         let groupsData = apiData.groups;
         let groupInvitesData = apiData.group_invites;
         let groupJoinRequestsData = apiData.group_join_requests;
@@ -170,8 +171,14 @@ class GameFuseJsonHelper {
             })
         }
 
-        if(chatsData != null){
-            GameFuseUser.CurrentUser.chats = chatsData.map(chatData => {
+        if(directChats != null) {
+            GameFuseUser.CurrentUser.directChats = directChats.map(chatData => {
+                return GameFuseJsonHelper.convertJsonToChat(chatData);
+            });
+        }
+
+        if(groupChats != null){
+            GameFuseUser.CurrentUser.groupChats = groupChats.map(chatData => {
                 return GameFuseJsonHelper.convertJsonToChat(chatData);
             });
         }
