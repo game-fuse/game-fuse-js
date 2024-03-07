@@ -23,7 +23,7 @@ class GameFuseFriendRequest {
             let currentUser = GameFuseUser.CurrentUser;
 
             if(currentUser.getUsername() === username) {
-                throw('Cannot send a friend request to yourself!')
+                throw('Cannot send a friend request to yourself!');
             }
 
             GameFuse.Log("GameFuseUser sending friend request");

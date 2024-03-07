@@ -51,6 +51,17 @@ class GameFuseUser {
         this._userCache = {}
     }
 
+    static get GroupCache() {
+        if (!this._groupCache) {
+            this._groupCache = {}
+        }
+        return this._groupCache;
+    }
+
+    static resetGroupCache() {
+        this._groupCache = {}
+    }
+
     // instance setters
     setSignedInInternal() {
         this.signedIn = true;

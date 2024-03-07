@@ -182,6 +182,7 @@ class GameFuse {
 
             GameFuseUser.resetCurrentUser();
             GameFuseUser.resetUserCache();
+            GameFuseUser.resetGroupCache();
 
             GameFuseUser.CurrentUser.setSignedInInternal();
             GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));

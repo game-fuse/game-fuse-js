@@ -30,7 +30,7 @@ class GameFuseJsonHelper {
             purchasedStoreItems,
             leaderboardEntries,
             userData.friendship_id,
-            userData.id !== GameFuseUser.CurrentUser.getID() // will be 'true' (otherUser) if they are not equal.
+            userData.id !== GameFuseUser.CurrentUser.getID() // will be 'true' if they are not equal (that is, isOtherUser => true)
         );
 
         GameFuseUser.UserCache[userData.id] = userObj;
@@ -64,7 +64,7 @@ class GameFuseJsonHelper {
         return new GameFuseFriendRequest(
             friendReqData.friendship_id,
             friendReqData.requested_at,
-            this.convertJsonToUser(friendReqData)
+            this.convertJsonToUser(friendReqData, false)
         )
     }
 
@@ -72,7 +72,7 @@ class GameFuseJsonHelper {
         return new GameFuseChat(
             chatData.id,
             chatData.participants.map(userData => {
-                return GameFuseJsonHelper.convertJsonToUser(userData);
+                return GameFuseJsonHelper.convertJsonToUser(userData, false);
             }),
             chatData.messages.map(messageData => {
                 return this.convertJsonToMessage(messageData);
@@ -89,7 +89,10 @@ class GameFuseJsonHelper {
     }
 
     static convertJsonToGroup(groupData) {
-        // TODO: don't override the members array if only the top-level attributes have changed. ex. update, show.
+        if(GameFuseUser.GroupCache[groupData.id]){
+            return GameFuseUser.GroupCache[groupData.id]
+        }
+
         let gameFuseGroup = new GameFuseGroup(
             groupData.id,
             groupData.name,
@@ -98,10 +101,10 @@ class GameFuseJsonHelper {
             groupData.max_group_size,
             groupData.member_count,
             groupData.members == null ? [] : groupData.members.map(memberData => {
-                return this.convertJsonToUser(memberData);
+                return this.convertJsonToUser(memberData, false);
             }),
             groupData.admins == null ? [] : groupData.admins.map(adminData => {
-                return this.convertJsonToUser(adminData);
+                return this.convertJsonToUser(adminData, false);
             })
         );
 
@@ -113,6 +116,8 @@ class GameFuseJsonHelper {
         groupData.invites = groupData.invites == null ? [] : groupData.invites.map(inviteData => {
             return this.convertJsonToGroupInvite(inviteData, gameFuseGroup, null)
         });
+
+        GameFuseUser.GroupCache[groupData.id] = gameFuseGroup;
 
         return gameFuseGroup;
     }

@@ -61,12 +61,12 @@ class GameFuseExampleGroups {
                 await existingGroup.update(options, () => console.log('group1 updated'));
             })
 
-            // TODO: do we really always need to get the new object, or should this existing 'this' instance be updated with the new attributes?
-            existingGroup = currentUser().getGroups()[0];
             Test.expect(existingGroup.getName()).toEqual('My Cool Group 1', 'the new name should be my cool group 1');
             Test.expect(existingGroup.getCanAutoJoin()).toEqual(true, 'auto join should now be true');
             Test.expect(existingGroup.getIsInviteOnly()).toEqual(false, 'invite only should now be false');
             Test.expect(existingGroup.getMaxGroupSize()).toEqual(10, 'max group size should now be 10');
+            Test.expect(existingGroup.getMembers().length).toEqual(1, 'there should still be data in the members array (should not have been wiped out)');
+            Test.expect(existingGroup.getAdmins().length).toEqual(1, 'there should still be data in the admins array (should not have been wiped out)');
         });
 
         await Test.describe('REQUEST TO JOIN GROUP', async() => {
@@ -85,7 +85,7 @@ class GameFuseExampleGroups {
 
         await Test.describe('ACCEPT GROUP JOIN REQUEST', async() => {
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {})
-            // we have to first download the full data to get the join request / invite info.
+            // we have to first download the full data, as the group admin, to get the join request / invite info.
             let group = currentUser().getGroups()[0];
             await group.downloadFullData(() => console.log('downloaded full data for the group'));
 
@@ -96,11 +96,11 @@ class GameFuseExampleGroups {
                 await joinRequests[0].accept(() => console.log('user1 group admin accepted user2 join request'));
             })
 
-            let refreshedGroup = currentUser().getGroups()[0];
-            Test.expect(refreshedGroup.getJoinRequests().length).toEqual(0);
-            let groupMembers = refreshedGroup.getMembers();
+            Test.expect(group.getJoinRequests().length).toEqual(0);
+
+            let groupMembers = group.getMembers();
             Test.expect(groupMembers.length).toEqual(2, 'there should be 2 members');
-            Test.expect(refreshedGroup.getMemberCount()).toEqual(2, 'member count should be 2');
+            Test.expect(group.getMemberCount()).toEqual(2, 'member count should be 2');
 
             let actualMembers = JSON.stringify(groupMembers.map(member => member.getID()).sort());
             let expectedMembers = JSON.stringify([this.user1.getID(), this.user2.getID()].sort());
@@ -109,10 +109,10 @@ class GameFuseExampleGroups {
 
             const findUser2 = (users) => users.find(user => user.getID() === this.user2.getID());
 
-            let user2AsMember = findUser2(refreshedGroup.getMembers());
+            let user2AsMember = findUser2(group.getMembers());
             Test.expect(user2AsMember).notToEqual(undefined, 'user2 should now be a member');
 
-            let user2AsAdmin = findUser2(refreshedGroup.getAdmins());
+            let user2AsAdmin = findUser2(group.getAdmins());
             Test.expect(user2AsAdmin).toEqual(undefined, 'user2 should not be an admin');
         });
 
@@ -134,7 +134,6 @@ class GameFuseExampleGroups {
                 await joinRequests[0].decline(() => console.log('user1 group admin declined user3 join request'));
             })
 
-            // let refreshedGroup = currentUser().getGroups()[0];
             Test.expect(group.getJoinRequests().length).toEqual(0);
             let groupMembers = group.getMembers();
             Test.expect(groupMembers.length).toEqual(2);
@@ -174,7 +173,8 @@ class GameFuseExampleGroups {
             let groupInvites = currentUser().getGroups()[0].getInvites();
             Test.expect(groupInvites.length).toEqual(2, 'there should be 2 invites');
 
-            for(let userNumber = 6; userNumber >= 5; userNumber--){
+            // test for users 5 and 6
+            for(let userNumber of [5, 6]){
                 await GameFuse.signIn(this[`user${userNumber}`].getTestEmail(), 'password', () => console.log(`user${userNumber} signed in`));
                 let myPendingInvites = currentUser().getGroupInvites();
                 Test.expect(myPendingInvites.length).toEqual(1, `User${userNumber} should have 1 group invite waiting`);
@@ -293,6 +293,7 @@ class GameFuseExampleGroups {
         await Test.describe('MAKING A MEMBER AN ADMIN', async() => {
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {});
             let group = currentUser().getGroups()[0]
+
             await Test.test('group.makeMemberAdmin(user)', async() => {
                 await group.makeMemberAdmin(this.user4);
             });
@@ -329,7 +330,7 @@ class GameFuseExampleGroups {
                 await group.join(() => console.log('user5 attempts to re-join group1 after being removed'));
             });
 
-            Test.expect(currentUser().getGroups().length).toEqual(0, 'User5 should not have in any groups (i.e. the action should have been unsuccessful)');
+            Test.expect(currentUser().getGroups().length).toEqual(0, 'User5 should not be in any groups (i.e. the action should have been unsuccessful)');
             Test.expect(group.getMembers().find(member => member.getID() === this.user5.getID())).toEqual(undefined, 'group1 should not contain user5 in its members array');
         });
 
@@ -369,6 +370,7 @@ class GameFuseExampleGroups {
         await Test.describe('DESTROY GROUP', async() => {
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {});
             let group = currentUser().getGroups()[0];
+
             await Test.test('group.destroy()', async () => {
                 group.destroy(() => console.log('group 1 destroyed'));
             })
