@@ -38,7 +38,7 @@ class GameFuseGroup {
 
     // TODO: without a specific member object, how are we going to be able to include things like joinedAt?
     getMembers() {
-        // TODO: if the members aren't downloaded yet, should this download them...?
+        // TODO: if the members aren't downloaded yet, should this download them...? No...
         return this.members;
     }
 
@@ -316,7 +316,6 @@ class GameFuseGroup {
             GameFuse.Log(`Current user is attempting to join the group with name ${this.getName()}`);
             let currentUser = GameFuseUser.CurrentUser;
 
-            // TODO: figure out if this is the right URL. It should probably be through the group_connections model...?
             const url = `${GameFuse.getBaseURL()}/group_connections`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
@@ -499,7 +498,6 @@ class GameFuseGroup {
         try {
             GameFuse.Log(`Removing user with username ${userToRemove?.getUsername()} from group with name ${this.getName()}`);
 
-            // TODO: figure out if this is the right URL. Should probably be through the group connections model...?
             const url = `${GameFuse.getBaseURL()}/group_connections/remove_member/${userToRemove?.getID()}`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',

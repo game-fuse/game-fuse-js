@@ -408,7 +408,7 @@ class GameFuseUser {
 
     // get chat objects from API, passing a "page number" to get chats other than the most recent 25.
     // TODO: @mitch shouldn't this be a static method in the chat? wouldn't we just always assume that it's the current user?
-    //      Why would we ever want to call it on a different user? @mitch
+    //      Why would we ever want to call it on a different user?
     async getOlderChats(page = 2, callback = undefined) {
         try {
             if (this.getIsOtherUser()) {

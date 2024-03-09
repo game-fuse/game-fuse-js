@@ -241,7 +241,7 @@ class GameFuse {
                 // add the current user to the UserCache.
                 GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
 
-                // TODO: @mitch is this supposed to be using await? Is there a reason to use await here? @mitch
+                // TODO: @mitch is this supposed to be using await? Is there a reason to use await here?
                 await GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
             } else {
                 console.log("GameFuse Sign Up Failure: " + email);

@@ -10,14 +10,10 @@ class GameFuseGroupInvite {
         return this.id;
     }
 
-    // TODO: if we are inside of the user, this data will be omitted, so figure out how to get it from here.
-    // TODO: go through the places where this object is constructed and verify if the above statement is true or not.
     getUser() {
         return this.user;
     }
 
-    // TODO: if we are inside of the group, this data will be omitted, so figure out how to get it from here.
-    // TODO: go through the places where this object is constructed and verify if the above statement is true or not.
     getGroup() {
         return this.group;
     }
