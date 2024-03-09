@@ -1,6 +1,6 @@
-class GameFuseFriendRequest {
-    constructor(friendshipId, requestedAt, otherUser) {
-        this.friendshipId = friendshipId
+class GameFuseFriendRequest { // ==> refers to the Friendship rails model
+    constructor(id, requestedAt, otherUser) {
+        this.id = id
         this.requestedAt = requestedAt;
         this.otherUser = otherUser;
     }
@@ -9,8 +9,8 @@ class GameFuseFriendRequest {
         return this.otherUser;
     }
 
-    getFriendshipID() {
-        return this.friendshipId;
+    getID() {
+        return this.id;
     }
 
     getRequestedAt() {
@@ -28,7 +28,7 @@ class GameFuseFriendRequest {
 
             GameFuse.Log("GameFuseUser sending friend request");
 
-            const url = GameFuse.getBaseURL() + "/friendships"
+            const url = `${GameFuse.getBaseURL()}/friendships`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
                 headers: {
@@ -40,9 +40,9 @@ class GameFuseFriendRequest {
 
             const responseOk = await GameFuseUtilities.requestIsOk(response)
             if (responseOk) {
-                GameFuse.Log("GameFuseUser Get Friends Success");
+                GameFuse.Log('GameFuseFriendRequest Send friend request Success!');
 
-                // add this friend request to the beginning of the friend requests array
+                // add this friend request to the front of the friend requests array
                 currentUser.outgoingFriendRequests.unshift(
                     GameFuseJsonHelper.convertJsonToFriendRequest(response.data)
                 );
@@ -63,8 +63,8 @@ class GameFuseFriendRequest {
     // cancel a friend request
     async cancel(callback) {
         try {
-            GameFuse.Log(`GameFuseFriendRequest Cancel Friend Request with the user of username ${this.getOtherUser().getUsername()}`);
-            const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipID();
+            GameFuse.Log(`GameFuseFriendRequest Cancel Friend Request with the user of username ${this.getOtherUser()?.getUsername()}`);
+            const url = `${GameFuse.getBaseURL()}/friendships/${this.getID()}`;
             let currentUser = GameFuseUser.CurrentUser;
 
             const response = await GameFuseUtilities.processRequest(url, {
@@ -81,7 +81,7 @@ class GameFuseFriendRequest {
                 GameFuse.Log("GameFuseUser Cancel Friend Request Success");
 
                 // remove this friendship from the friend requests list
-                currentUser.outgoingFriendRequests = currentUser.outgoingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID())
+                currentUser.outgoingFriendRequests = currentUser.outgoingFriendRequests.filter(friendReq => friendReq.getID() !== this.getID())
             }
 
             GameFuseUtilities.HandleCallback(
@@ -97,20 +97,24 @@ class GameFuseFriendRequest {
     }
 
     // Accept a friend request
-    async accept(callback) {
+    accept(callback) {
         return this.respond('accepted', callback);
     }
 
     // Decline a friend request
-    async decline(callback) {
+    decline(callback) {
         return this.respond('declined', callback);
     }
 
     // Private internal method that responds to a friend request (either accepting or declining)
     async respond(acceptedOrDeclined, callback) {
         try {
-            GameFuse.Log(`GameFuseFriendRequest Accept Request for user with username ${this.getOtherUser().getUsername()}`);
-            const url = GameFuse.getBaseURL() + "/friendships/" + this.getFriendshipID();
+            if(!(['accepted', 'declined'].includes(acceptedOrDeclined))){
+                throw("first parameter must be 'accepted' or 'declined'");
+            }
+
+            GameFuse.Log(`GameFuseFriendRequest Accept Request for user with username ${this.getOtherUser()?.getUsername()}`);
+            const url = `${GameFuse.getBaseURL()}/friendships/${this.getID()}`;
             const data = {
                 friendship: {
                     status: acceptedOrDeclined
@@ -132,10 +136,10 @@ class GameFuseFriendRequest {
             if (responseOk) {
                 GameFuse.Log("GameFuseUser Get Friends Success");
                 // remove from friend requests
-                currentUser.incomingFriendRequests = currentUser.incomingFriendRequests.filter(friendReq => friendReq.getFriendshipID() !== this.getFriendshipID());
+                currentUser.incomingFriendRequests = currentUser.incomingFriendRequests.filter(friendReq => friendReq.getID() !== this.getID());
 
                 if(acceptedOrDeclined === 'accepted'){
-                    // add the user to the friends list, at the beginning
+                    // add the user to the front of the friends list
                     currentUser.friends.unshift(this.getOtherUser()); // otherUser is a reference to the UserCache object
                 }
             }

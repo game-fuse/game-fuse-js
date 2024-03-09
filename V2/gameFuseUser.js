@@ -2,7 +2,7 @@
 class GameFuseUser {
     constructor(signedIn = false, numberOfLogins = 0, lastLogin = undefined, authenticationToken = "",
         username = "", score = 0, credits = 0, id = 0, attributes = {}, purchasedStoreItems = [],
-        leaderboardEntries = [], friendshipId = undefined, isOtherUser = false) {
+        leaderboardEntries = [], isOtherUser = false) {
         this.signedIn = signedIn;
         this.numberOfLogins = numberOfLogins;
         this.lastLogin = lastLogin;
@@ -19,7 +19,6 @@ class GameFuseUser {
         this.outgoingFriendRequests = []; // only the ones that you've sent
         this.incomingFriendRequests = []; // only the ones that you need to respond to
         this.isOtherUser = isOtherUser;
-        this.friendshipId = friendshipId;
 
         // start relational data. These get set when the response arrives back from the signIn method. See: setRelationalDataInternal
         this.directChats = [];
@@ -143,10 +142,6 @@ class GameFuseUser {
 
     getLeaderboardEntries() {
         return this.leaderboardEntries;
-    }
-
-    getFriendshipID() {
-        return this.friendshipId;
     }
 
     getDirectChats() {
@@ -412,6 +407,8 @@ class GameFuseUser {
     }
 
     // get chat objects from API, passing a "page number" to get chats other than the most recent 25.
+    // TODO: @mitch shouldn't this be a static method in the chat? wouldn't we just always assume that it's the current user?
+    //      Why would we ever want to call it on a different user? @mitch
     async getOlderChats(page = 2, callback = undefined) {
         try {
             if (this.getIsOtherUser()) {
@@ -465,7 +462,7 @@ class GameFuseUser {
         return GameFuseChat.sendMessage(this.getUsername(), message, callback)
     }
 
-    async inviteToGroup(group, callback= undefined) {
+    inviteToGroup(group, callback= undefined) {
         return group.invite(this, callback);
     }
 
@@ -609,7 +606,6 @@ class GameFuseUser {
         }
 
         let currentUser = GameFuseUser.CurrentUser;
-
 
         const url = GameFuse.getBaseURL() + "/users/" + currentUser.getID() + "/remove_game_user_attributes" + `?game_user_attribute_key=${key}`;
 

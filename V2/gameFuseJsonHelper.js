@@ -13,7 +13,7 @@ class GameFuseJsonHelper {
             return GameFuseUser.UserCache[userData.id]
         }
 
-        let attributes = userData.game_user_attributes && this.formatUserAttributes(userData.game_user_attributes);
+        const attributes = userData.game_user_attributes && this.formatUserAttributes(userData.game_user_attributes);
         const purchasedStoreItems = userData.game_user_store_items && userData.game_user_attributes.map(item => this.convertJsonToStoreItem(item));
         const leaderboardEntries = userData.leaderboard_entries && userData.leaderboard_entries.map(entryData => this.convertJsonToLeaderboardEntry(entryData));
 
@@ -29,7 +29,6 @@ class GameFuseJsonHelper {
             attributes,
             purchasedStoreItems,
             leaderboardEntries,
-            userData.friendship_id,
             userData.id !== GameFuseUser.CurrentUser?.getID() // will be 'true' if they are not equal (that is, isOtherUser => true)
         );
 
@@ -72,6 +71,7 @@ class GameFuseJsonHelper {
         return new GameFuseChat(
             chatData.id,
             chatData.participants.map(userData => {
+                // this adds the user to the UserCache, guaranteeing that convertJsonToMessage has access to a user object from the cache (see: convertJsonToMessage).
                 return GameFuseJsonHelper.convertJsonToUser(userData, false);
             }),
             chatData.messages.map(messageData => {
@@ -84,7 +84,8 @@ class GameFuseJsonHelper {
         return new GameFuseMessage(
             messageData.text,
             messageData.created_at,
-            GameFuseUser.UserCache[messageData.user_id] // the participants' user object will already be in the cache since participants get built/added before the messages.
+            // the user object will already be in the UserCache, given that it's either the current user, or it's a chat participant, which is built before message (See convertJsonToChat),
+            GameFuseUser.UserCache[messageData.user_id]
         )
     }
 

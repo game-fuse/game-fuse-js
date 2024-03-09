@@ -103,18 +103,15 @@ class GameFuseGroupInvite {
                 headers: {
                     'Content-Type': 'application/json',
                     'authentication-token': currentUser.getAuthenticationToken()
-                },
-                body: JSON.stringify({
-                    connection_type: 'invite'
-                })
+                }
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
                 GameFuse.Log('GameFuseGroupInvite cancelled successfully');
 
-                // remove the invite from the group's array
-                let group = this.getGroup(); // TODO: will this group object always be the same one that is in the other arrays??
+                // remove the invite from the group
+                let group = this.getGroup();
                 group.invites = group.invites.filter(invite => invite.getID() !== this.getID());
             }
 

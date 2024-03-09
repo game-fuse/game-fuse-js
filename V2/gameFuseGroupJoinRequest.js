@@ -93,10 +93,7 @@ class GameFuseGroupJoinRequest {
                 headers: {
                     'Content-Type': 'application/json',
                     'authentication-token': currentUser.getAuthenticationToken()
-                },
-                body: JSON.stringify({
-                    connection_type: 'join_request'
-                })
+                }
             });
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);

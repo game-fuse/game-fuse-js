@@ -12,7 +12,6 @@ class GameFuseExampleGroups {
     async testGroups() {
         console.log('WE ARE UP AND RUNNING BABY')
 
-        // Create a new group (pass in options, like name, invite only, auto-join vs acceptance, max group size, etc.??)
         for (let userNumber = 6; userNumber >= 1; userNumber--) {
             this[`user${userNumber}`] = await Test.createUser(() => { console.log(`signed up user ${userNumber}`)});
         }
@@ -134,7 +133,7 @@ class GameFuseExampleGroups {
             let group = currentUser().getGroups()[0];
             await GameFuse.signIn(this.user4.getTestEmail(), 'password', () => {})
             await group.requestToJoin(() => console.log('user4 requested to join group1'));
-            // TODO: discuss if this is the right way to access this object? Or should it be through the group somehow...?
+
             let joinRequests = currentUser().getGroupJoinRequests();
 
             await Test.test('groupJoinRequest.cancel()', async() => {
@@ -142,8 +141,6 @@ class GameFuseExampleGroups {
             });
 
             Test.expect(currentUser().getGroupJoinRequests().length).toEqual(0, 'The pending group join request should be gone for user4');
-
-            // await GameFuse.signIn(this.user4.getTestEmail(), 'password', () => {}); // TODO: remove this once it is verified to no longer be necessary
             Test.expect(currentUser().getGroups().length).toEqual(0, 'User4 should not be part of any groups')
 
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {})
@@ -185,7 +182,6 @@ class GameFuseExampleGroups {
                 await user6Invite.cancel(() => console.log('user1 cancels the group invite to user 6'));
             })
 
-            // group no longer has any pending invites
             Test.expect(group.getInvites().length).toEqual(1, 'The group should now only have 1 pending invite (the one for user 5)')
         });
 
@@ -201,7 +197,7 @@ class GameFuseExampleGroups {
             Test.expect(currentUser().getGroupInvites().length).toEqual(0, 'there should not be any group invites to respond to');
             let myGroups = currentUser().getGroups();
             Test.expect(myGroups.length).toEqual(1, 'I should now have 1 group in my list');
-            Test.expect(myGroups[0].getName()).toEqual('My Cool Group 1'); // TODO: we should be able to refer to this name globally
+            Test.expect(myGroups[0].getName()).toEqual('My Cool Group 1');
 
             const findUser5 = (users) => users.find(user => user.getID() === this.user5.getID());
             let user5AsMember = findUser5(myGroups[0].getMembers());
@@ -256,8 +252,6 @@ class GameFuseExampleGroups {
             // update the group to auto joinable
             let group = currentUser().getGroups()[0];
 
-            // TODO: is it bad that we have to get the full data to figure out if a user is an admin? in the normal flow i assume we'd get the full data first, no...?
-            await group.downloadFullData(() => console.log('downloaded full data for group1'));
             await group.update( { canAutoJoin: true }, () => console.log('update group 1 to be auto-joinable'));
             Test.expect(group.getCanAutoJoin()).toEqual(true, 'the group should now be auto-joinable')
 
@@ -269,13 +263,12 @@ class GameFuseExampleGroups {
 
             // expect it to be in their groups
             Test.expect(currentUser().getGroups()[0].getName()).toEqual('My Cool Group 1', 'User4 should now have this group in their data');
-            // sign in user1
+
+            // sign in user1, expect them to be in there as a non-group leader.
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {});
-            // expect them to be in there as a non-group leader.
 
             const findUser4 = (users) => users.find(user => user.getID() === this.user4.getID());
-            // TODO: should not need to refresh this group like this, but check
-            // group = currentUser().getGroups()[0]
+
             let group4Member = findUser4(group.getMembers());
             Test.expect(group4Member).notToEqual(undefined, 'User4 should be a full-fledged group member');
 
@@ -301,9 +294,9 @@ class GameFuseExampleGroups {
             // expect/ensure user5 is in the group
             Test.expect(findUser5(group.getMembers())).notToEqual(undefined, 'Check/ensure that user5 is currently in group1');
 
-            await Test.test('group.removeMember(user2)', async() => {
+            await Test.test('group.removeMember(user5)', async() => {
                 // user1 removes them
-                await group.removeMember(this.user5, () => console.log('user1 group admin removes user2 from the group'));
+                await group.removeMember(this.user5, () => console.log('user1 group admin removes user5 from the group'));
             })
 
             // expect them to no longer be there as user1
@@ -367,7 +360,6 @@ class GameFuseExampleGroups {
             let groupID = group.getID();
 
             await Test.test('group.destroy()', async () => {
-                await group.downloadFullData(() => console.log('got full data for group'));
                 await group.destroy(() => console.log('group 1 destroyed'));
             })
 

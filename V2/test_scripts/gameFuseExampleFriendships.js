@@ -63,10 +63,7 @@ class GameFuseExampleFriendships {
 
             await Test.test('6: USER3 SHOULD HAVE APPROPRIATE STATE DATA', async () => {
                 // 7. Sign in as user3 and expect appropriate data
-                // await GameFuse.signIn(this.user3.getTestEmail(), 'password', () => { console.log('user3 signed in') });
-                await GameFuse.Instance.signInPrivate(this.user3.getTestEmail(), 'password', () => { console.log('user3 signed in')})
-                console.log('THE CURRENTLY SIGNED IN USER IS ' + currentUser().getID());
-                console.log('USER 3 HAS ID OF ' + this.user3.getID());
+                await GameFuse.signIn(this.user3.getTestEmail(), 'password', () => { console.log('user3 signed in') });
                 let friends = GameFuseUser.CurrentUser.getFriends();
                 let incomingFriendRequests = GameFuseUser.CurrentUser.getIncomingFriendRequests();
                 let outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
@@ -87,7 +84,7 @@ class GameFuseExampleFriendships {
             await friendRequestToCancel.cancel(() => { console.log('user3 cancels friend request with user2') });
 
             outgoingFriendRequests = GameFuseUser.CurrentUser.getOutgoingFriendRequests();
-            Test.expect(outgoingFriendRequests.length, 0, "check that there are no longer any friend requests in user3's outgoing friend request list");
+            Test.expect(outgoingFriendRequests.length).toEqual(0, "check that there are no longer any friend requests in user3's outgoing friend request list");
         });
 
         await Test.describe('UNFRIENDING SOMEONE', async() => {

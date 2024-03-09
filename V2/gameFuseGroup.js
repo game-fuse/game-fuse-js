@@ -38,6 +38,7 @@ class GameFuseGroup {
 
     // TODO: without a specific member object, how are we going to be able to include things like joinedAt?
     getMembers() {
+        // TODO: if the members aren't downloaded yet, should this download them...?
         return this.members;
     }
 
@@ -55,7 +56,7 @@ class GameFuseGroup {
 
     static async downloadAvailableGroups(callback = undefined) {
         try {
-            GameFuse.Log('Downloading available group')
+            GameFuse.Log('Downloading available group');
             let currentUser = GameFuseUser.CurrentUser;
 
             const url = `${GameFuse.getBaseURL()}/groups`
@@ -73,8 +74,7 @@ class GameFuseGroup {
 
                 // add all the groups to the available groups array
                 response.data.forEach((groupData) => {
-                    let groupObject = GameFuseJsonHelper.convertJsonToGroup(groupData);
-                    currentUser.downloadedAvailableGroups.push(groupObject);
+                    currentUser.downloadedAvailableGroups.push(GameFuseJsonHelper.convertJsonToGroup(groupData));
                 });
             }
 
@@ -99,7 +99,7 @@ class GameFuseGroup {
 
             let missingKeys = expectedKeys.filter(expectedKey => !actualKeys.includes(expectedKey))
             if(missingKeys.length > 0){
-                throw(`The attributes hash is missing the following keys: ${missingKeys}`);
+                throw(`The attributes hash is missing the following keys: ${missingKeys.join(', ')}`);
             }
 
             const url = `${GameFuse.getBaseURL()}/groups`;
@@ -144,12 +144,23 @@ class GameFuseGroup {
         }
     }
 
+    async userIsAdmin(user){
+        let admins = this.getAdmins();
+        if(admins.length === 0){
+            // this means we need to download full data.
+            await this.downloadFullData(() => console.log(`downloaded full data for group '${this.getName()}'`));
+            admins = this.getAdmins();
+        }
+
+        return admins.find(admin => admin.getID() === user.getID());
+    }
+
     async update(attributesToUpdate, callback = undefined) {
         try {
             GameFuse.Log(`Updating group with name ${this.getName()}`);
             let currentUser = GameFuseUser.CurrentUser;
-            let currentUserIsAdmin = this.getAdmins().map(user => user.getID()).includes(currentUser.getID())
-            if(!currentUserIsAdmin){
+
+            if(!(await this.userIsAdmin(currentUser))){
                 throw('You must be an admin to update a group!')
             }
 
@@ -158,7 +169,7 @@ class GameFuseGroup {
             let notAllowedKeys = actualKeys.filter(key => !allowedKeys.includes(key))
 
             if(notAllowedKeys.length > 0){
-                throw(`The following keys are not allowed in the attributesToUpdate hash for updating a group: ${notAllowedKeys}`);
+                throw(`The following keys are not allowed in the attributesToUpdate hash for updating a group: ${notAllowedKeys.join(', ')}`);
             } else if(actualKeys.length === 0) {
                 throw('You must pass at least one updatable key. See docs.')
             }
@@ -194,10 +205,11 @@ class GameFuseGroup {
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup update Success');
 
-                // update the group object object
+                // update the group object with the response data from the API
+                let updatedGroupData = response.data;
                 for (let key in attributesToUpdate) {
                     let snakeCaseKey = keyMapping[key];
-                    this[key] = response.data[snakeCaseKey]
+                    this[key] = updatedGroupData[snakeCaseKey]
                 }
             }
 
@@ -217,9 +229,8 @@ class GameFuseGroup {
         try {
             GameFuse.Log(`Destroying group with name ${this.getName()}`);
             let currentUser = GameFuseUser.CurrentUser;
-            let currentUserIsAdmin = this.getAdmins().map(user => user.getID()).includes(currentUser.getID())
-            if(!currentUserIsAdmin){
-                throw('You must be an admin to destroy a group!')
+            if(!(await this.userIsAdmin(currentUser))){
+                throw('You must be an admin to destroy a group!');
             }
 
             const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}`;
@@ -281,10 +292,10 @@ class GameFuseGroup {
                     admins: data.admins.map(adminData => GameFuseJsonHelper.convertJsonToUser(adminData))
                 });
 
-                // handle join requests and invites after assigning the above attributes so that we can pass in the updated object instance to create these objects
-                // this data will not be returned if the current user isn't an admin of the group.
+                // Handle join requests and invites after assigning the above attributes so that we can pass in the updated object instance to create these objects.
+                // Note that this data will not be returned from the API if the current user isn't an admin of the group.
                 if(data.join_requests) { this.joinRequests = data.join_requests.map(joinRequestData => GameFuseJsonHelper.convertJsonToGroupJoinRequest(joinRequestData, this, null)); }
-                if(data.invites) { this.invites = data.invites.map(inviteData => GameFuseJsonHelper.convertJsonToGroupInvite(inviteData, this, null)); }
+                if(data.invites) { this.invites = data.invites.map(inviteData => GameFuseJsonHelper.convertJsonToGroupInvite(inviteData, this, null, null)); }
             }
 
             GameFuseUtilities.HandleCallback(
@@ -351,7 +362,6 @@ class GameFuseGroup {
             GameFuse.Log(`Current user is requesting to join the group with name ${this.getName()}`);
             let currentUser = GameFuseUser.CurrentUser;
 
-            // TODO: figure out if this is the right URL. It should probably be through the group_connections model...?
             const url = `${GameFuse.getBaseURL()}/group_connections`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
@@ -371,14 +381,16 @@ class GameFuseGroup {
 
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
-                GameFuse.Log('GameFuseGroup requestToJoin success');
                 if(response.data.status === 'accepted'){
-                    // this means that the group was auto-joinable, so the person was automatically made a member. Add this group to their groups.
-                    currentUser.groups.unshift(this)
+                    GameFuse.Log('GameFuseGroup requestToJoin ==> led to an actual join due to the group being auto joinable.');
+                    // this means that the group was auto-joinable, so the person was automatically made a member.
+                    this.members.unshift(currentUser); // add current user to the members list
+                    currentUser.groups.unshift(this); // add this group to the current user's group list
+                    this.memberCount += 1; // bump the memberCount by 1
                 } else {
+                    GameFuse.Log('GameFuseGroup requestToJoin Success.');
                     // This is the expected behavior. Make a join request object and add it to their join requests.
-                    let groupJoinRequest = GameFuseJsonHelper.convertJsonToGroupJoinRequest(response.data, this, currentUser);
-                    currentUser.groupJoinRequests.unshift(groupJoinRequest);
+                    currentUser.groupJoinRequests.unshift(GameFuseJsonHelper.convertJsonToGroupJoinRequest(response.data, this, currentUser));
                 }
             }
 
@@ -401,7 +413,6 @@ class GameFuseGroup {
             let currentUser = GameFuseUser.CurrentUser;
             GameFuse.Log(`The current user with username ${currentUser.getUsername()} is inviting user with username ${username} to the group with name ${this.getName()}`);
 
-            // TODO: figure out if this is the right URL. Should probably be through the group connections model...?
             const url = `${GameFuse.getBaseURL()}/group_connections`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
@@ -433,8 +444,7 @@ class GameFuseGroup {
 
                 let groupInvite = GameFuseJsonHelper.convertJsonToGroupInvite(response.data, this, personInvitedObj, currentUser);
 
-                // add the invite to the group in state
-                // TODO: can we just update 'this'? I think so.
+                // add the invite to the group.
                 this.invites.unshift(groupInvite);
             }
 
@@ -455,7 +465,7 @@ class GameFuseGroup {
             let currentUser = GameFuseUser.CurrentUser;
             GameFuse.Log(`The current user with username ${currentUser.getUsername()} is leaving group ${this.getName()}`);
 
-            const url = `${GameFuse.getBaseURL()}/group_connections/leave_group/${this.getID()}`;
+            const url = `${GameFuse.getBaseURL()}/group_connections/leave/${this.getID()}`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
                 headers: {
@@ -468,6 +478,8 @@ class GameFuseGroup {
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup leave success');
                 currentUser.groups = currentUser.groups.filter(group => group.getID() !== this.getID());  // remove the group from myGroups
+                this.members = this.members.filter(member => member.getID() !== currentUser.getID())
+                this.admins = this.admins.filter(admin => admin.getID() !== currentUser.getID())
                 this.memberCount -= 1;
             }
 
@@ -503,8 +515,8 @@ class GameFuseGroup {
             const responseOk = await GameFuseUtilities.requestIsOk(response);
             if (responseOk) {
                 GameFuse.Log('GameFuseGroup removeMember success');
-                this.members = this.members.filter(member => member.getID() !== userToRemove.getID()) // remove this user from the members
-                this.memberCount -= 1; // decrease the memberCount by 1
+                this.members = this.members.filter(member => member.getID() !== userToRemove.getID());
+                this.memberCount -= 1;
             }
 
             GameFuseUtilities.HandleCallback(

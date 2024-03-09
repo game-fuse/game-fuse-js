@@ -97,7 +97,7 @@ class GameFuseTestingUtilities {
                 callback();
                 return GameFuseJsonHelper.convertJsonToUser(response.data, true);;
             } else {
-                throw('somethign went wrong while creating this user!')
+                throw('something went wrong while creating this user!')
             }
         } catch (error) {
             console.log(error)

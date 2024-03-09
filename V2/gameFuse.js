@@ -180,10 +180,7 @@ class GameFuse {
         if (responseOk) {
             this.Log(`GameFuse Sign In Success: ${email}`);
 
-            GameFuseUser.resetCurrentUser();
-            GameFuseUser.resetUserCache();
-            GameFuseUser.resetGroupCache();
-
+            GameFuse.resetGlobalVariables();
             GameFuseUser.CurrentUser.setSignedInInternal();
             GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
             GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));
@@ -194,6 +191,9 @@ class GameFuse {
             GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
             GameFuseJsonHelper.setRelationalDataInternal(response.data);
             GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
+
+            // add the current user to the UserCache.
+            GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
         } else {
             this.Log(`GameFuse Sign In Failure: ${email}`);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User has been signed in successfully", callback, true);
@@ -229,7 +229,7 @@ class GameFuse {
             if (GameFuseUtilities.RequestIsSuccessful(response)) {
                 console.log("GameFuse Sign Up Success: " + email);
 
-                GameFuseUser.resetCurrentUser();
+                GameFuse.resetGlobalVariables();
                 GameFuseUser.CurrentUser.setSignedInInternal();
                 GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
                 GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));
@@ -238,6 +238,10 @@ class GameFuse {
                 GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
                 GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
                 GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
+                // add the current user to the UserCache.
+                GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
+
+                // TODO: @mitch is this supposed to be using await? Is there a reason to use await here? @mitch
                 await GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
             } else {
                 console.log("GameFuse Sign Up Failure: " + email);
@@ -248,6 +252,12 @@ class GameFuse {
             if (callback !== null)
                 callback("An unknown error occurred: " + error, true);
         }
+    }
+
+    static resetGlobalVariables() {
+        GameFuseUser.resetCurrentUser();
+        GameFuseUser.resetUserCache();
+        GameFuseUser.resetGroupCache();
     }
 
 
