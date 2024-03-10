@@ -238,10 +238,12 @@ class GameFuse {
                 GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
                 GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
                 GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
-                // add the current user to the UserCache.
+
+                // add the current user to the UserCache
                 GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
 
-                // TODO: @mitch is this supposed to be using await? Is there a reason to use await here?
+                // TODO: @mitch is all of this data now in the sign in response? Do we need to download store items and whatnot?
+
                 await GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
             } else {
                 console.log("GameFuse Sign Up Failure: " + email);
