@@ -4,6 +4,35 @@ class GameFuseTestingUtilities {
     //     return new Promise((resolve) => setTimeout(resolve, delay) )
     // }
 
+    static async performTestLogic(testClassInstance, testLogic) {
+        try {
+            // await this.setupTestGame(testClassInstance, () => console.log('created game and set values'))
+            await testLogic();
+        } catch (error) {
+            console.log(error);
+        } finally {
+            this.cleanUpTest(testClassInstance, () => console.log('HALLELUJAH! we have made it to the end of the test.'))
+        }
+    }
+
+    static async startTest(testMethod, testClassInstance){
+        await Test.setupTestGame(testClassInstance, () => console.log('created game and set values'))
+
+        if (testClassInstance.gameToken && testClassInstance.gameID) {
+            console.log("GameFuse start");
+
+            GameFuse.setVerboseLogging(false);
+            GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, testMethod, true);
+        } else {
+            console.log(
+                "Add ID and Token",
+                "Please add your token and ID, if you do not have one, you can create a free account from gamefuse.co",
+                "OK"
+            );
+            throw new Error("Token and ID Invalid");
+        }
+    }
+
     static expect(actual) {
         return {
             toEqual: (expected, optionalLog = '') => {
@@ -49,24 +78,6 @@ class GameFuseTestingUtilities {
         //     there's no need to manually resolve it.
         // });
         return callback()
-    }
-
-    static async startTest(testMethod, testClassInstance){
-        await Test.setupTestGame(testClassInstance, () => console.log('created game and set values'))
-
-        if (testClassInstance.gameToken && testClassInstance.gameID) {
-            console.log("GameFuse start");
-
-            GameFuse.setVerboseLogging(false);
-            GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, testMethod, true);
-        } else {
-            console.log(
-                "Add ID and Token",
-                "Please add your token and ID, if you do not have one, you can create a free account from gamefuse.co",
-                "OK"
-            );
-            throw new Error("Token and ID Invalid");
-        }
     }
 
     static async createUser(callback = undefined) {

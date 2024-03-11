@@ -12,12 +12,11 @@ class GameFuseExampleFriendships {
     }
 
     async testFriendships() {
-        try {
+        Test.performTestLogic(this, async () => {
             // 1. Sign up 5 users
             for (let userNumber = 1; userNumber <= 5; userNumber++) {
                 this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
             }
-
             await Test.describe('SENDING FRIEND REQUESTS', async () => {
                 await Test.test('2: USER 2 FRIEND REQUESTS USER 1 (USERNAME METHOD)', async () => {
                     await GameFuse.signIn(this.user2.getTestEmail(), 'password', () => {
@@ -132,14 +131,7 @@ class GameFuseExampleFriendships {
                 friends = GameFuseUser.CurrentUser.getFriends();
                 Test.expect(friends.length).toEqual(0, 'user1 should have 0 friends');
             })
-
-            // We've made it. Hallelujah!
-            console.log("SUCCESS!! WE MADE IT TO THE END OF OF THE FRIENDSHIP TEST SCRIPT WITH NO ERRORS.")
-        } catch (error) {
-            console.log(error);
-        } finally {
-            await Test.cleanUpTest(this, () => console.log('done cleaning up test data'));
-        }
+        })
     }
 }
 

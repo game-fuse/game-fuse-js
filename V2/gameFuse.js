@@ -190,7 +190,6 @@ class GameFuse {
             GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
             GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
             GameFuseJsonHelper.setRelationalDataInternal(response.data);
-            GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
 
             // add the current user to the UserCache.
             GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
@@ -241,10 +240,6 @@ class GameFuse {
 
                 // add the current user to the UserCache
                 GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
-
-                // TODO: @mitch is all of this data now in the sign in response? Do we need to download store items and whatnot?
-
-                await GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
             } else {
                 console.log("GameFuse Sign Up Failure: " + email);
                 await GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User could not sign up: " + response.error, callback, false);

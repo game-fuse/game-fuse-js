@@ -314,44 +314,43 @@ class GameFuseUser {
       }
     }
 
-
-    async downloadAttributes(chainedFromLogin, callback=undefined) {
-      try {
-        GameFuse.Log("GameFuseUser get Attributes");
-
-        if (GameFuse.getGameId() == null) {
-          throw new GameFuseException(
-            "Please set up your game with GameFuse.SetUpGame before modifying users"
-          );
-        }
-
-        const url = GameFuse.getBaseURL() + "/users/" + this.id + "/game_user_attributes"
-        const response = await GameFuseUtilities.processRequest(url, {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
-          }
-        });
-
-        const responseOk = await GameFuseUtilities.requestIsOk(response)
-        if (responseOk) {
-          GameFuse.Log("GameFuseUser Get Attributes Success");
-          this.attributes = GameFuseJsonHelper.formatUserAttributes(response.data.game_user_attributes);
-          await this.downloadStoreItems(chainedFromLogin, callback);
-        } else {
-          GameFuseUtilities.HandleCallback(
-            response,
-            chainedFromLogin ? "Users have been signed in successfully" : "User attributes have been downloaded",
-            callback,
-            true
-          );
-        }
-      } catch (error) {
-        console.log(error) 
-        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
-      }
-    }
+    // async downloadAttributes(callback= undefined) {
+    //   try {
+    //     GameFuse.Log("GameFuseUser get Attributes");
+    //
+    //     if (GameFuse.getGameId() == null) {
+    //       throw new GameFuseException(
+    //         "Please set up your game with GameFuse.SetUpGame before modifying users"
+    //       );
+    //     }
+    //
+    //     const url = GameFuse.getBaseURL() + "/users/" + this.id + "/game_user_attributes"
+    //     const response = await GameFuseUtilities.processRequest(url, {
+    //       method: 'GET',
+    //       headers: {
+    //           'Content-Type': 'application/json',
+    //           'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+    //       }
+    //     });
+    //
+    //     const responseOk = await GameFuseUtilities.requestIsOk(response)
+    //     if (responseOk) {
+    //       GameFuse.Log("GameFuseUser Get Attributes Success");
+    //       this.attributes = GameFuseJsonHelper.formatUserAttributes(response.data.game_user_attributes);
+    //       await this.downloadStoreItems(callback);
+    //     } else {
+    //       GameFuseUtilities.HandleCallback(
+    //         response,
+    //         "User attributes have been downloaded",
+    //         callback,
+    //         true
+    //       );
+    //     }
+    //   } catch (error) {
+    //     console.log(error)
+    //     GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+    //   }
+    // }
 
     async sendFriendRequest(callback= undefined) {
         if(!this.getIsOtherUser()){
@@ -631,57 +630,57 @@ class GameFuseUser {
       }
     }
 
-    async downloadStoreItems(chainedFromLogin, callback=undefined) {
-      try {
-        GameFuse.Log("GameFuseUser Download Store Items");
-
-        if (GameFuse.getGameId() == null) {
-          throw new GameFuseException(
-            "Please set up your game with GameFuse.SetUpGame before modifying users"
-          );
-        }
-
-        let currentUser = GameFuseUser.CurrentUser;
-
-        const url = GameFuse.getBaseURL() + "/users/" + currentUser.id + "/game_user_store_items";
-        const response = await GameFuseUtilities.processRequest(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'authentication-token': currentUser.getAuthenticationToken()
-          }
-        });
-
-        const responseOk = await GameFuseUtilities.requestIsOk(response)
-        if (responseOk) {
-          GameFuse.Log("GameFuseUser Download Store Items Success");
-
-          const game_user_store_items = response.data.game_user_store_items;
-
-          this.purchasedStoreItems = []
-          for (const item of game_user_store_items) {
-            this.purchasedStoreItems.push(new GameFuseStoreItem(
-              item.name,
-              item.category,
-              item.description,
-              parseInt(item.cost),
-              parseInt(item.id),
-              item.icon_url
-            ));
-          }
-        }
-
-        GameFuseUtilities.HandleCallback(
-          response,
-          chainedFromLogin ? "Users have been signed in successfully" : "User store items have been downloaded",
-          callback,
-          true
-        );
-      } catch (error) {
-        console.log(error)
-        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
-      }
-    }
+    // async downloadStoreItems(callback = undefined) {
+    //   try {
+    //     GameFuse.Log("GameFuseUser Download Store Items");
+    //
+    //     if (GameFuse.getGameId() == null) {
+    //       throw new GameFuseException(
+    //         "Please set up your game with GameFuse.SetUpGame before modifying users"
+    //       );
+    //     }
+    //
+    //     let currentUser = GameFuseUser.CurrentUser;
+    //
+    //     const url = GameFuse.getBaseURL() + "/users/" + currentUser.id + "/game_user_store_items";
+    //     const response = await GameFuseUtilities.processRequest(url, {
+    //       method: 'GET',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         'authentication-token': currentUser.getAuthenticationToken()
+    //       }
+    //     });
+    //
+    //     const responseOk = await GameFuseUtilities.requestIsOk(response)
+    //     if (responseOk) {
+    //       GameFuse.Log("GameFuseUser Download Store Items Success");
+    //
+    //       const game_user_store_items = response.data.game_user_store_items;
+    //
+    //       this.purchasedStoreItems = []
+    //       for (const item of game_user_store_items) {
+    //         this.purchasedStoreItems.push(new GameFuseStoreItem(
+    //           item.name,
+    //           item.category,
+    //           item.description,
+    //           parseInt(item.cost),
+    //           parseInt(item.id),
+    //           item.icon_url
+    //         ));
+    //       }
+    //     }
+    //
+    //     GameFuseUtilities.HandleCallback(
+    //       response,
+    //       "User store items have been downloaded",
+    //       callback,
+    //       true
+    //     );
+    //   } catch (error) {
+    //     console.log(error)
+    //     GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+    //   }
+    // }
 
 
     getPurchasedStoreItems() {
