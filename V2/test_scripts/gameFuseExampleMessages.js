@@ -166,7 +166,7 @@ class GameFuseExampleMessages {
                 });
                 Test.expect(currentUser().getDirectChats().length).toEqual(25, 'expect 25 of the chats to be in the array, but not all 27 of them due to pagination.');
 
-                await currentUser().getOlderChats(2, () => {
+                await GameFuseChat.getOlderChats(2, () => {
                     console.log('got the 2nd page of chats')
                 });
                 Test.expect(currentUser().getDirectChats().length).toEqual(27, 'There should now be all 27 chats in the array after getting the rest of the chats from the API');

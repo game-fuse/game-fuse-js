@@ -177,4 +177,49 @@ class GameFuseChat {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
     }
+
+    // get chat objects from API, passing a "page number" to get chats other than the most recent 25.
+    static async getOlderChats(page = 2, callback = undefined) {
+        try {
+            if (typeof page !== 'number' || page < 2) {
+                throw ('Page parameter must be a number that is 2 or greater!')
+            }
+
+            let currentUser = GameFuseUser.CurrentUser;
+
+            const url = GameFuse.getBaseURL() + `/chats/page/${page}`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication-token': currentUser.getAuthenticationToken()
+                }
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+
+            if (responseOk) {
+                GameFuse.Log("GameFuseChat getOlderChats success");
+
+                // loop over the new chats and add them to the chats array, at the end of the array since they are older.
+                response.data.direct_chats.forEach(chatJson => {
+                    currentUser.directChats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
+                })
+
+                response.data.group_chats.forEach(chatJson => {
+                    currentUser.groupChats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
+                })
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Page ${page} of chats received!` : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
+        } catch (error) {
+            console.log(error)
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
+    }
 }

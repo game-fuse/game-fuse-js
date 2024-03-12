@@ -43,8 +43,9 @@ class GameFuseLeaderboardEntry {
     }
 
     // method to get a user's full profile data
-    // TODO: this should be a static method inside of GameFuseUser
-    // async downloadFullUserData(gameUserId) {
+    // NOTE: this is the start of this method, its implementation is not yet done. We will add this on an upcoming PR.
+    // This will be an instance method inside of GameFuseUser, with usage such as userObject.downloadFullUserData();
+    // async downloadFullUserData() {
     //     // provide all data that we get for friends for a user (hit the show endpoint)
     //
     //     try {

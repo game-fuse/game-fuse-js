@@ -314,44 +314,6 @@ class GameFuseUser {
       }
     }
 
-    // async downloadAttributes(callback= undefined) {
-    //   try {
-    //     GameFuse.Log("GameFuseUser get Attributes");
-    //
-    //     if (GameFuse.getGameId() == null) {
-    //       throw new GameFuseException(
-    //         "Please set up your game with GameFuse.SetUpGame before modifying users"
-    //       );
-    //     }
-    //
-    //     const url = GameFuse.getBaseURL() + "/users/" + this.id + "/game_user_attributes"
-    //     const response = await GameFuseUtilities.processRequest(url, {
-    //       method: 'GET',
-    //       headers: {
-    //           'Content-Type': 'application/json',
-    //           'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
-    //       }
-    //     });
-    //
-    //     const responseOk = await GameFuseUtilities.requestIsOk(response)
-    //     if (responseOk) {
-    //       GameFuse.Log("GameFuseUser Get Attributes Success");
-    //       this.attributes = GameFuseJsonHelper.formatUserAttributes(response.data.game_user_attributes);
-    //       await this.downloadStoreItems(callback);
-    //     } else {
-    //       GameFuseUtilities.HandleCallback(
-    //         response,
-    //         "User attributes have been downloaded",
-    //         callback,
-    //         true
-    //       );
-    //     }
-    //   } catch (error) {
-    //     console.log(error)
-    //     GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
-    //   }
-    // }
-
     async sendFriendRequest(callback= undefined) {
         if(!this.getIsOtherUser()){
             throw('Cannot send a friend request to yourself, must send to another user!')
@@ -401,54 +363,6 @@ class GameFuseUser {
             )
         } catch (error) {
             console.log(error);
-            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
-        }
-    }
-
-    // get chat objects from API, passing a "page number" to get chats other than the most recent 25.
-    // TODO: @mitch shouldn't this be a static method in the chat? wouldn't we just always assume that it's the current user?
-    //      Why would we ever want to call it on a different user?
-    async getOlderChats(page = 2, callback = undefined) {
-        try {
-            if (this.getIsOtherUser()) {
-                throw ('Cannot get older chats for other users')
-            }
-            if (typeof page !== 'number' || page < 2) {
-                throw ('Page parameter must be a number that is 2 or greater!')
-            }
-
-            const url = GameFuse.getBaseURL() + `/chats/page/${page}`;
-            const response = await GameFuseUtilities.processRequest(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
-                }
-            });
-
-            const responseOk = await GameFuseUtilities.requestIsOk(response);
-
-            if (responseOk) {
-                GameFuse.Log("GameFuseChat getOlderChats success");
-
-                // loop over the new chats and add them to the chats array, at the end of the array since they are older.
-                response.data.direct_chats.forEach(chatJson => {
-                    this.directChats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
-                })
-
-                response.data.group_chats.forEach(chatJson => {
-                    this.groupChats.push(GameFuseJsonHelper.convertJsonToChat(chatJson));
-                })
-            }
-
-            GameFuseUtilities.HandleCallback(
-                response,
-                responseOk ? `Page ${page} of chats received!` : response.data, // message from the api
-                callback,
-                !!responseOk
-            )
-        } catch (error) {
-            console.log(error)
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
     }
@@ -629,58 +543,6 @@ class GameFuseUser {
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
-
-    // async downloadStoreItems(callback = undefined) {
-    //   try {
-    //     GameFuse.Log("GameFuseUser Download Store Items");
-    //
-    //     if (GameFuse.getGameId() == null) {
-    //       throw new GameFuseException(
-    //         "Please set up your game with GameFuse.SetUpGame before modifying users"
-    //       );
-    //     }
-    //
-    //     let currentUser = GameFuseUser.CurrentUser;
-    //
-    //     const url = GameFuse.getBaseURL() + "/users/" + currentUser.id + "/game_user_store_items";
-    //     const response = await GameFuseUtilities.processRequest(url, {
-    //       method: 'GET',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'authentication-token': currentUser.getAuthenticationToken()
-    //       }
-    //     });
-    //
-    //     const responseOk = await GameFuseUtilities.requestIsOk(response)
-    //     if (responseOk) {
-    //       GameFuse.Log("GameFuseUser Download Store Items Success");
-    //
-    //       const game_user_store_items = response.data.game_user_store_items;
-    //
-    //       this.purchasedStoreItems = []
-    //       for (const item of game_user_store_items) {
-    //         this.purchasedStoreItems.push(new GameFuseStoreItem(
-    //           item.name,
-    //           item.category,
-    //           item.description,
-    //           parseInt(item.cost),
-    //           parseInt(item.id),
-    //           item.icon_url
-    //         ));
-    //       }
-    //     }
-    //
-    //     GameFuseUtilities.HandleCallback(
-    //       response,
-    //       "User store items have been downloaded",
-    //       callback,
-    //       true
-    //     );
-    //   } catch (error) {
-    //     console.log(error)
-    //     GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
-    //   }
-    // }
 
 
     getPurchasedStoreItems() {
