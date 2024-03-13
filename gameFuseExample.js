@@ -14,7 +14,7 @@
         this.username = `tommundo${random}`;
         let self = this
         if (this.gameToken === "" || this.gameID === "") {
-            EditorUtility.DisplayDialog(
+            console.log(
                 "Add ID and Token",
                 "Please add your token and ID, if you do not have one, you can create a free account from gamefuse.co",
                 "OK"

@@ -26,7 +26,7 @@
             }
         } catch (error) {
             console.error("response had error: ");
-            console.log(error)
+            console.error(error)
             if (callback !== null)
                 callback("An unknown error occurred: " + error, true);
         }
@@ -47,7 +47,6 @@
       response.data = data;
       return response;
     }
-
 
     static async requestIsOk(response){
         const data = response.data

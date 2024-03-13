@@ -1,4 +1,5 @@
-﻿class GameFuse {
+﻿// V2
+class GameFuse {
     static request;
 
     constructor() {
@@ -19,8 +20,7 @@
     }
 
     static getBaseURL() {
-        // return "http://localhost/api/v2";
-        return "https://gamefuse.co/api/v2";
+        return ENV?.baseUrl || "https://gamefuse.co/api/v2";
     }
 
     static getGameId() {
@@ -78,7 +78,8 @@
         this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/verify?${body}`);
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/verify?${body}`);
 
-        if (!response.data) {
+        let requestIsOk = await GameFuseUtilities.requestIsOk(response)
+        if (requestIsOk) {
             this.Log(`GameFuse Setting Up Game Received Request Success: ${gameId}: ${token}`);
             this.id = response.data.id.toString();
             this.name = response.data.name;
@@ -155,7 +156,7 @@
     }
 
     static signIn(email, password, callback = undefined) {
-        this.Instance.signInPrivate(email, password, callback);
+        return this.Instance.signInPrivate(email, password, callback);
     }
 
     async signInPrivate(email, password, callback = undefined) {
@@ -178,6 +179,8 @@
         const responseOk = await GameFuseUtilities.requestIsOk(response)
         if (responseOk) {
             this.Log(`GameFuse Sign In Success: ${email}`);
+
+            GameFuse.resetGlobalVariables();
             GameFuseUser.CurrentUser.setSignedInInternal();
             GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
             GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));
@@ -186,7 +189,10 @@
             GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
             GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
             GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
-            GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
+            GameFuseJsonHelper.setRelationalDataInternal(response.data);
+
+            // add the current user to the UserCache.
+            GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
         } else {
             this.Log(`GameFuse Sign In Failure: ${email}`);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User has been signed in successfully", callback, true);
@@ -194,11 +200,11 @@
     }
 
     static signUp(email, password, password_confirmation, username, callback = undefined) {
-        this.Instance.signUpPrivate(email, password, password_confirmation, username, callback);
+        return this.Instance.signUpPrivate(email, password, password_confirmation, username, callback);
     }
 
     signUpPrivate(email, password, password_confirmation, username, callback = undefined) {
-        this.signUpRoutine(email, password, password_confirmation, username, callback);
+        return this.signUpRoutine(email, password, password_confirmation, username, callback);
     }
 
     async signUpRoutine(email, password, password_confirmation, username, callback = undefined) {
@@ -222,6 +228,7 @@
             if (GameFuseUtilities.RequestIsSuccessful(response)) {
                 console.log("GameFuse Sign Up Success: " + email);
 
+                GameFuse.resetGlobalVariables();
                 GameFuseUser.CurrentUser.setSignedInInternal();
                 GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
                 GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));
@@ -230,7 +237,9 @@
                 GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
                 GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
                 GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
-                await GameFuseUser.CurrentUser.downloadAttributes(true, callback); // Chain next request - download users attributes
+
+                // add the current user to the UserCache
+                GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
             } else {
                 console.log("GameFuse Sign Up Failure: " + email);
                 await GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User could not sign up: " + response.error, callback, false);
@@ -240,6 +249,12 @@
             if (callback !== null)
                 callback("An unknown error occurred: " + error, true);
         }
+    }
+
+    static resetGlobalVariables() {
+        GameFuseUser.resetCurrentUser();
+        GameFuseUser.resetUserCache();
+        GameFuseUser.resetGroupCache();
     }
 
 
@@ -255,14 +270,14 @@
                 throw new GameFuseException("Please set up your game with GameFuse.SetUpGame before modifying users");
             }
 
-            const parameters = "?authentication_token=" + GameFuseUser.CurrentUser.getAuthenticationToken() + "&limit=" + limit.toString() + "&one_per_user=" + onePerUser.toString() + "&leaderboard_name=" + LeaderboardName.toString();
+            const parameters = "?limit=" + limit.toString() + "&one_per_user=" + onePerUser.toString() + "&leaderboard_name=" + LeaderboardName.toString();
             const url = GameFuse.getBaseURL() + "/games/" + GameFuse.getGameId() + "/leaderboard_entries" + parameters;
 
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
                 }
             });
 
@@ -312,7 +327,7 @@
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'authentication_token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
             }
         });
 
