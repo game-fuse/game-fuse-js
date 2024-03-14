@@ -2,18 +2,12 @@ const Test = GameFuseTestingUtilities;
 const currentUser = () => GameFuseUser.CurrentUser;
 
 class GameFuseExampleFriendships {
-    constructor(token, id) {
-        this.gameToken = token;
-        this.gameID = id;
+    constructor() {
     }
 
-    start() {
-        GameFuseTestingUtilities.startTest(this.testFriendships.bind(this), this)
-    }
-
-    async testFriendships() {
+    async run() {
         Test.performTestLogic(this, async () => {
-            // 1. Sign up 5 users
+            // Sign up 5 users
             for (let userNumber = 1; userNumber <= 5; userNumber++) {
                 this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
             }
@@ -135,6 +129,4 @@ class GameFuseExampleFriendships {
     }
 }
 
-const example = new GameFuseExampleFriendships(ENV.gameToken, ENV.gameId);
-
-example.start()
+new GameFuseExampleFriendships().run();

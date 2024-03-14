@@ -63,11 +63,11 @@ class GameFuse {
 
     static setUpGame(gameId, token, callback = undefined, extraData={}) {
         this.Log(`GameFuse Setting Up Game: ${gameId}: ${token}`);
-        this.Instance.setUpGamePrivate(gameId, token, callback, extraData);
+        return this.Instance.setUpGamePrivate(gameId, token, callback, extraData);
     }
 
     setUpGamePrivate(gameId, token, callback = undefined, extraData={}) {
-        this.setUpGameRoutine(gameId, token, callback, extraData);
+        return this.setUpGameRoutine(gameId, token, callback, extraData);
     }
 
     async setUpGameRoutine(gameId, token, callback = undefined, extraData={}) {

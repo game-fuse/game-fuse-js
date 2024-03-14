@@ -5,12 +5,8 @@ class GameFuseExampleGroups {
     constructor() {
     }
 
-    start() {
-        Test.startTest(this.testGroups.bind(this), this)
-    }
-
-    async testGroups() {
-        try {
+    async run() {
+        Test.performTestLogic(this, async () => {
             console.log('WE ARE UP AND RUNNING BABY')
 
             for (let userNumber = 6; userNumber >= 1; userNumber--) {
@@ -376,33 +372,23 @@ class GameFuseExampleGroups {
             });
 
             await Test.describe('DESTROY GROUP', async () => {
-                await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {
-                });
+                await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {});
                 let group = currentUser().getGroups()[0];
                 let groupID = group.getID();
 
                 await Test.test('group.destroy()', async () => {
                     await group.destroy(() => console.log('group 1 destroyed'));
-                })
+                });
 
                 let group1InState = currentUser().getGroups().find(group => group.getID() === groupID)
 
                 Test.expect(group1InState).toEqual(undefined, 'This group should no longer exist in my group info since we just destroyed it.')
             });
-
-            // Hallelujah!
-            console.log("SUCCESS!! WE MADE IT TO THE END OF OF THE GROUPS TEST SCRIPT WITH NO ERRORS.")
-        } catch (error) {
-            console.log(error);
-        } finally {
-            await Test.cleanUpTest(this, () => console.log('done cleaning up test data'));
-        }
+        });
 
         // TODO: move this into a test script for users, it doesn't quite belong here.
         // TEST USER DOWNLOAD FULL DATA
     }
 }
 
-const example = new GameFuseExampleGroups();
-
-example.start()
+new GameFuseExampleGroups().run();

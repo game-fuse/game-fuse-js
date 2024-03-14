@@ -1,0 +1,6 @@
+class GameFuseMultiplayerGameRound {
+    constructor() {
+
+    }
+
+}

@@ -6,23 +6,31 @@ class GameFuseTestingUtilities {
 
     static async performTestLogic(testClassInstance, testLogic) {
         try {
-            // await this.setupTestGame(testClassInstance, () => console.log('created game and set values'))
+            await this.setupTest(testClassInstance);
             await testLogic();
         } catch (error) {
             console.log(error);
         } finally {
-            this.cleanUpTest(testClassInstance, () => console.log('HALLELUJAH! we have made it to the end of the test.'))
+            await this.cleanUpTest(testClassInstance, () => console.log('Cleaned up test data'))
+            // Hallelujah!
+            let className = testClassInstance.constructor.name;
+            if(className.startsWith('GameFuseExample')){
+                className = className.substring('GameFuseExample'.length);
+            }
+            console.log(`Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE ${className.toUpperCase()} TEST SCRIPT WITH NO ERRORS.`)
         }
     }
 
-    static async startTest(testMethod, testClassInstance){
+    static async setupTest(testClassInstance){
         await Test.setupTestGame(testClassInstance, () => console.log('created game and set values'))
 
         if (testClassInstance.gameToken && testClassInstance.gameID) {
             console.log("GameFuse start");
 
             GameFuse.setVerboseLogging(false);
-            GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, testMethod, true);
+            await GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, () => console.log('finished setting up game'), true);
+
+            console.log('ready to rip!')
         } else {
             console.log(
                 "Add ID and Token",

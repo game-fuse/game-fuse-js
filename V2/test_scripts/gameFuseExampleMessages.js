@@ -3,17 +3,12 @@ const currentUser = () => GameFuseUser.CurrentUser;
 
 class GameFuseExampleMessages {
 
-    constructor(token, id) {
-        this.gameToken = token;
-        this.gameID = id;
+    constructor() {
     }
 
-    start() {
-        GameFuseTestingUtilities.startTest(this.testMessaging.bind(this), this)
-    }
+    async run() {
 
-    async testMessaging(message, hasError) {
-        try {
+        Test.performTestLogic(this, async () => {
             // sign up 3 users
             for (let userNumber = 1; userNumber <= 3; userNumber++) {
                 this[`user${userNumber}`] = await Test.createUser(() => console.log(`created user ${userNumber}`));
@@ -169,19 +164,11 @@ class GameFuseExampleMessages {
                 await GameFuseChat.getOlderChats(2, () => {
                     console.log('got the 2nd page of chats')
                 });
+
                 Test.expect(currentUser().getDirectChats().length).toEqual(27, 'There should now be all 27 chats in the array after getting the rest of the chats from the API');
             })
-
-            // Hallelujah!
-            console.log("Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE MESSAGING TEST SCRIPT WITH NO ERRORS.")
-        } catch (error) {
-            console.log(error);
-        } finally {
-            await Test.cleanUpTest(this, () => console.log('done cleaning up test data'));
-        }
+        });
     }
 }
 
-const example = new GameFuseExampleMessages(ENV.gameToken, ENV.gameId);
-
-example.start()
+new GameFuseExampleMessages().run();
