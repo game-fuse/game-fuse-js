@@ -35,7 +35,7 @@ class GameFuseTestingUtilities {
             console.log("GameFuse start");
 
             GameFuse.setVerboseLogging(false);
-            await GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, () => console.log('finished setting up game'), true);
+            await GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, () => console.log('finished setting up game'));
 
             console.log('ready to rip!')
         } else {
@@ -49,11 +49,12 @@ class GameFuseTestingUtilities {
     }
 
     static expect(actual) {
-        const handleResult = (conditionResult, expectedStatement, optionalLog = '') => {
-            if(conditionResult) {
+        const handleResult = (condition, expectedStatement, optionalLog = '') => {
+            if(condition) {
                 console.log(`   - Test passed! ${optionalLog}`);
             } else {
-                throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog})` : ''} : expected ${actual} to ${expectedStatement}`);
+                // throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog})` : ''} : expected ${actual} to ${expectedStatement}`);
+                throw(`   - TEST FAILED${optionalLog && ` (${optionalLog})`}: expected ${actual} to ${expectedStatement}`);
             }
         };
 
@@ -78,9 +79,10 @@ class GameFuseTestingUtilities {
             },
             toRaiseError: async (expectedMessage, optionalLog = '') => {
                 try {
+                    // in this case, 'actual' is a function that needs to be resolved by executing it.
                     await actual()
 
-                    throw('No error occurred!!!!') // if we make it here, then no error occurred.
+                    throw('No error occurred!!!!') // if we make it here, then no error occurred, which is the opposite of what we expect.
                 } catch (e) {
                     Test.expect(e).toEqual(expectedMessage, optionalLog)
                 }

@@ -722,7 +722,7 @@ class GameFuseUser {
       this.dirtyAttributes[key] = val;
     }
 
-    async syncLocalAttributes(callback=undefined)
+    async syncLocalAttributes(callback = undefined)
     {
       this.setAttributes(this.attributes, callback, true);
     }

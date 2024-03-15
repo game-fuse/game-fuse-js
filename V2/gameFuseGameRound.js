@@ -1,5 +1,4 @@
 class GameFuseGameRound {
-
     constructor(id, gameID, gameType, startTime, endTime, score, place, metadata, multiplayerGameRoundID, rankings = null) {
         this.id = id;
         this.gameID = gameID;
@@ -37,6 +36,7 @@ class GameFuseGameRound {
         if(this.getEndTime() == null || this.getStartTime() == null){
             return undefined;
         } else {
+            // getTime() returns time in milliseconds, so divide by 1000 to get actual seconds
             return (this.getEndTime().getTime() - this.getStartTime().getTime()) / 1000
         }
     }
@@ -58,9 +58,8 @@ class GameFuseGameRound {
     }
 
     isMultiplayer() {
-        // if there is an ID, this should return true.
-        // if it is null, this should return false.
-        return this.multiplayerGameRoundID != null
+        return this.multiplayerGameRoundID != null; // if there is an ID, this will return true. If it is null or undefined, it will return false.
+
     }
 
     getRankings() {
@@ -75,7 +74,10 @@ class GameFuseGameRound {
         }
     }
 
-    static async create(createOptions, callback = null, otherUserObj = null, originalRound = null) { // otherUserObj is 3rd parameter because it will not be used by game developers
+    // originalMultiplayerRound => the game round to which we are adding more players (optional)
+    // otherUserObj => the player that we are adding (optional)
+    // createOptions => hash of attributes that the game round will be created with.
+    static async create(createOptions, callback = null, otherUserObj = null, originalMultiplayerRound = null) { // otherUserObj is 3rd parameter because it will not be used by game developers
         try {
             GameFuse.Log('Creating a game round')
 
@@ -95,16 +97,16 @@ class GameFuseGameRound {
             let isForMultiplayer = !!(createOptions.multiplayer || createOptions.multiplayerGameRoundID);
 
             // we can use all the keys in the createOptions hash at this point, since we verified that there were no disallowed keys above.
-            // however, we will skip over 'multiplayer', since it is handled above and is not an explicit attribute of the game round that belongs in createDataHash.
+            // however, we will skip over 'multiplayer', since it is handled above and is not an explicit attribute of the game round that belongs in createParams.
 
-            let createDataHash = {};
+            let createParams = {};
             for (let camelCaseKey in createOptions) {
                 if(camelCaseKey === 'multiplayer') { continue }
                 let snakeCaseKey = this.gameRoundOptionsKeyMapping()[camelCaseKey];
-                createDataHash[snakeCaseKey] = createOptions[camelCaseKey];
+                createParams[snakeCaseKey] = createOptions[camelCaseKey];
             }
 
-            let data = { game_round: createDataHash, multiplayer: isForMultiplayer }
+            let data = { game_round: createParams, multiplayer: isForMultiplayer }
             const url = `${GameFuse.getBaseURL()}/game_rounds`;
 
             let currentUser = GameFuseUser.CurrentUser;
@@ -121,6 +123,7 @@ class GameFuseGameRound {
 
             if (responseOk) {
                 GameFuse.Log("GameFuseGameRound create Success");
+
                 // add this to the user's game rounds array
                 let userToModify = otherUserObj || currentUser;
                 let createdGameRound = GameFuseJsonHelper.convertJsonToGameRound(response.data);
@@ -128,8 +131,9 @@ class GameFuseGameRound {
                 userToModify.gameRounds.unshift(createdGameRound);
 
                 if(createOptions.multiplayerGameRoundID){
-                    // this means that we are adding a player to an originalRound object, so we must update the rankings attribute on the original object.
-                    originalRound.rankings = createdGameRound.rankings;
+                    // this means that we are adding a player to an existing multiplayer round object,
+                    // so we must update the rankings attribute on the original multiplayer round to include this new player.
+                    originalMultiplayerRound.rankings = createdGameRound.rankings;
                 }
             }
 
@@ -145,7 +149,7 @@ class GameFuseGameRound {
         }
     }
 
-    addPlayer(userObj, extraMetadata = null, callback = null) {
+    addPlayer(userObjToAdd, extraMetadata = null, callback = null) {
         if(!this.isMultiplayer()){
             throw('Cannot add another player to a single player round!');
         }
@@ -153,21 +157,21 @@ class GameFuseGameRound {
         let createOptions = {
             multiplayer: true,
             multiplayerGameRoundID: this.getMultiplayerGameRoundID(),
-            gameUserID: userObj.getID(),
+            gameUserID: userObjToAdd.getID(),
             metadata: extraMetadata,
             gameType: this.getGameType()
         }
 
-        return this.constructor.create(createOptions, callback, userObj, this);
+        return this.constructor.create(createOptions, callback, userObjToAdd, this);
     }
 
-    async update(updateOptions, callback = undefined) {
+    async update(attributesToUpdate, callback = undefined) {
         try {
             GameFuse.Log('Creating a game round')
 
             // a more limited set of keys than the create endpoint
             let allowedKeys = ['metadata', 'startTime', 'endTime', 'place', 'score'];
-            let actualKeys = Object.keys(updateOptions);
+            let actualKeys = Object.keys(attributesToUpdate);
 
             let notAllowedKeys = actualKeys.filter(key => !allowedKeys.includes(key));
 
@@ -175,14 +179,14 @@ class GameFuseGameRound {
                 throw (`the following keys are not allowed in the options hash for creating a game round: ${notAllowedKeys.join(', ')}`)
             }
 
-            // we can use all the keys in the updateOptions hash at this point, since we verified that there were no disallowed keys above.
-            let updateDataHash = {};
-            for (let camelCaseKey in updateOptions) {
+            // we can use all the keys in the attributesToUpdate hash at this point, since we verified that there were no disallowed keys above.
+            let updateParams = {};
+            for (let camelCaseKey in attributesToUpdate) {
                 let snakeCaseKey = this.constructor.gameRoundOptionsKeyMapping()[camelCaseKey];
-                updateDataHash[snakeCaseKey] = updateOptions[camelCaseKey];
+                updateParams[snakeCaseKey] = attributesToUpdate[camelCaseKey];
             }
 
-            let data = {game_round: updateDataHash}
+            let data = {game_round: updateParams}
 
             const url = `${GameFuse.getBaseURL()}/game_rounds/${this.getID()}`;
 
@@ -201,18 +205,18 @@ class GameFuseGameRound {
                 GameFuse.Log("GameFuseGameRound update Success");
 
                 // update the game round object with the response data returned from the API
-                let updatedAttributes = response.data;
+                let updatedRoundData = response.data;
                 Object.assign(this, {
-                    id: updatedAttributes.id,
-                    gameID: updatedAttributes.game_id,
-                    gameType: updatedAttributes.game_type,
-                    startTime: updatedAttributes.start_time && new Date(updatedAttributes.start_time),
-                    endTime: updatedAttributes.end_time && new Date(updatedAttributes.end_time),
-                    score: updatedAttributes.score,
-                    place: updatedAttributes.place,
-                    metadata: updatedAttributes.metadata,
-                    multiplayerGameRoundID: updatedAttributes.multiplayer_game_round_id,
-                    rankings: updatedAttributes.multiplayer_game_round_id == null ? [] : this.constructor.buildRankings(updatedAttributes.rankings)
+                    id: updatedRoundData.id,
+                    gameID: updatedRoundData.game_id,
+                    gameType: updatedRoundData.game_type,
+                    startTime: updatedRoundData.start_time && new Date(updatedRoundData.start_time),
+                    endTime: updatedRoundData.end_time && new Date(updatedRoundData.end_time),
+                    score: updatedRoundData.score,
+                    place: updatedRoundData.place,
+                    metadata: updatedRoundData.metadata,
+                    multiplayerGameRoundID: updatedRoundData.multiplayer_game_round_id,
+                    rankings: updatedRoundData.multiplayer_game_round_id == null ? [] : this.constructor.buildRankings(updatedRoundData.rankings)
                 })
             }
 
@@ -264,6 +268,18 @@ class GameFuseGameRound {
         }
     }
 
+    static buildRankings(apiData) {
+        return apiData.map(rankingData => {
+            return {
+                score: rankingData.score,
+                place: rankingData.place,
+                startTime: rankingData.start_time && new Date(rankingData.start_time),
+                endTime: rankingData.end_time && new Date(rankingData.end_time),
+                user: GameFuseJsonHelper.convertJsonToUser(rankingData.user)
+            }
+        })
+    }
+
     static gameRoundOptionsKeyMapping() {
         return {
             gameId: 'game_id',
@@ -276,17 +292,5 @@ class GameFuseGameRound {
             endTime: 'end_time',
             metadata: 'metadata'
         }
-    }
-
-    static buildRankings(apiData) {
-        return apiData.map(rankingData => {
-            return {
-                score: rankingData.score,
-                place: rankingData.place,
-                startTime: rankingData.start_time && new Date(rankingData.start_time),
-                endTime: rankingData.end_time && new Date(rankingData.end_time),
-                user: GameFuseJsonHelper.convertJsonToUser(rankingData.user)
-            }
-        })
     }
 }

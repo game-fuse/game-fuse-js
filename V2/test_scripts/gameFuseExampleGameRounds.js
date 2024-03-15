@@ -10,7 +10,7 @@ class GameFuseExampleGameRounds {
         Test.performTestLogic(this, async () => {
             // Sign up 3 users
             for (let userNumber = 1; userNumber <= 3; userNumber++) {
-                this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user1`));
+                this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user${userNumber}`));
             }
 
             await Test.describe('Sign in, expect basic data arrays', async () => {
@@ -24,7 +24,7 @@ class GameFuseExampleGameRounds {
                     multiplayer: false,
                     gameType: 'Capture The Flag',
                     gameUserID: currentUser().getID(),
-                    metadata: { hello: 'hello' }
+                    metadata: { aliensKilled: 0 }
                 };
 
                 await Test.test('GameFuseGameRound.create(createOptions) FOR SINGLE-PLAYER', async () => {
@@ -42,10 +42,10 @@ class GameFuseExampleGameRounds {
                 Test.expect(gameRound.getEndTime()).toBeBlank('End time should not yet be set');
                 Test.expect(gameRound.getScore()).toBeBlank('Score should not yet be set');
                 Test.expect(gameRound.getPlace()).toBeBlank('Place should not yet be set');
-                Test.expect(gameRound.getMetadata()).toEqualObject({ hello: 'hello' }, 'Metadata should be set exactly to what we passed in');
+                Test.expect(gameRound.getMetadata()).toEqualObject({ aliensKilled: 0 }, 'Metadata should be set exactly to what we passed in');
                 Test.expect(gameRound.isMultiplayer()).toEqual(false, 'This game round should be marked as NOT multiplayer');
 
-                // attempt to add a player to this single-player round, expect it to not do it...
+                // attempt to add a player to this single-player round, expect it to raise an error with a specific message
                 Test.expect(() => gameRound.addPlayer(this.user2, () => {})).toRaiseError('Cannot add another player to a single player round!', 'Should not allow adding another player to a single player round');
             });
 
@@ -86,7 +86,7 @@ class GameFuseExampleGameRounds {
                     multiplayer: true,
                     gameType: 'Pineapple Swimming',
                     gameUserID: currentUser().getID(),
-                    metadata: { hello: 'hello' }
+                    metadata: { aliensKilled: 0 }
                 };
 
                 await Test.test('GameFuseGameRound.create(createOptions) FOR MULTIPLAYER', async () => {
@@ -113,12 +113,10 @@ class GameFuseExampleGameRounds {
             });
 
             await Test.describe('Add players to the multi player game, expect appropriate multiplayer data structures', async () => {
-                // participants where each participant is a user object and maybe inside of an extraAttributes data hash we have the game round info stored?!?!
-                // But honestly maybe we just need the user.
                 let multiplayerRound = this.user1.getGameRounds()[0];
 
                 await Test.test('gameRound.addPlayer(userObj) FOR MULTIPLAYER ONLY', async () => {
-                    await multiplayerRound.addPlayer(this.user2, { hello: 'hello' }, () => console.log('added player2'));
+                    await multiplayerRound.addPlayer(this.user2, { aliensKilled: 0 }, () => console.log('added player2'));
                     await multiplayerRound.addPlayer(this.user3, null, () => console.log('added player3'));
                 });
 

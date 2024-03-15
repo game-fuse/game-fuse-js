@@ -148,7 +148,7 @@ class GameFuseJsonHelper {
             gameRoundData.place,
             gameRoundData.metadata,
             gameRoundData.multiplayer_game_round_id,
-            gameRoundData.multiplayer_game_round_id == null ? [] : GameFuseGameRound.buildRankings(gameRoundData.rankings)
+            gameRoundData.multiplayer_game_round_id && GameFuseGameRound.buildRankings(gameRoundData.rankings)
         );
     }
 

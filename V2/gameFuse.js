@@ -186,7 +186,7 @@ class GameFuse {
             currentUser.setScoreInternal(parseInt(response.data.score));
             currentUser.setCreditsInternal(parseInt(response.data.credits));
             currentUser.setUsernameInternal(response.data.username);
-            currentUser.setLastLoginInternal(new Date(response.data.last_login));
+            currentUser.setLastLoginInternal(response.data.last_login && new Date(response.data.last_login));
             currentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
             currentUser.setAuthenticationTokenInternal(response.data.authentication_token);
             currentUser.setIDInternal(parseInt(response.data.id));
