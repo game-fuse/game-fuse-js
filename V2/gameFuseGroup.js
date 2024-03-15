@@ -160,18 +160,18 @@ class GameFuseGroup {
             GameFuse.Log(`Updating group with name ${this.getName()}`);
             let currentUser = GameFuseUser.CurrentUser;
 
-            if (!(await this.userIsAdmin(currentUser))) {
-                throw ('You must be an admin to update a group!')
+            if(!(await this.userIsAdmin(currentUser))) {
+                throw('You must be an admin to update a group!')
             }
 
             let allowedKeys = ['name', 'maxGroupSize', 'canAutoJoin', 'isInviteOnly'];
             let actualKeys = Object.keys(attributesToUpdate);
             let notAllowedKeys = actualKeys.filter(key => !allowedKeys.includes(key))
 
-            if (notAllowedKeys.length > 0) {
-                throw (`The following keys are not allowed in the attributesToUpdate hash for updating a group: ${notAllowedKeys.join(', ')}`);
+            if(notAllowedKeys.length > 0) {
+                throw(`The following keys are not allowed in the attributesToUpdate hash for updating a group: ${notAllowedKeys.join(', ')}`);
             } else if (actualKeys.length === 0) {
-                throw ('You must pass at least one updatable key. See docs.')
+                throw('You must pass at least one updatable key. See docs.')
             }
 
             // we could dynamically convert these to snake case using something like str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);,

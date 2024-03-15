@@ -4,6 +4,7 @@ const currentUser = () => GameFuseUser.CurrentUser;
 class GameFuseExampleMessages {
 
     constructor() {
+        // nothing to see here...
     }
 
     async run() {

@@ -3,6 +3,7 @@ const currentUser = () => GameFuseUser.CurrentUser;
 
 class GameFuseExampleGroups {
     constructor() {
+        // nothing to see here...
     }
 
     async run() {
