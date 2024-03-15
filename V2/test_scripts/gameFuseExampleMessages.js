@@ -112,9 +112,9 @@ class GameFuseExampleMessages {
                 let participants = groupChat.getParticipants();
                 Test.expect(participants.length).toEqual(3, 'the group chat should have 3 participants');
 
-                let actualChatUsernames = JSON.stringify(participants.map(part => part.getUsername()).sort())
-                let expectedChatUsernames = JSON.stringify([this.user1.getUsername(), this.user2.getUsername(), this.user3.getUsername()].sort())
-                Test.expect(actualChatUsernames).toEqual(expectedChatUsernames, 'the participants should have user1, 2, and 3 usernames inside of GameFuseUser objects');
+                let actualChatUsernames = participants.map(part => part.getUsername()).sort()
+                let expectedChatUsernames = [this.user1.getUsername(), this.user2.getUsername(), this.user3.getUsername()].sort()
+                Test.expect(actualChatUsernames).toEqualObject(expectedChatUsernames, 'the participants should have user1, 2, and 3 usernames inside of GameFuseUser objects');
             })
 
             await Test.test('User3 sends 30 messages to the group chat', async () => {

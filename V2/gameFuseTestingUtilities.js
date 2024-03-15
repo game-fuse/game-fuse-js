@@ -5,19 +5,26 @@ class GameFuseTestingUtilities {
     // }
 
     static async performTestLogic(testClassInstance, testLogic) {
+        let success = null; // used in the `finally` block.
+
         try {
             await this.setupTest(testClassInstance);
             await testLogic();
+            success = true;
         } catch (error) {
             console.log(error);
+            success = false;
         } finally {
             await this.cleanUpTest(testClassInstance, () => console.log('Cleaned up test data'))
-            // Hallelujah!
-            let className = testClassInstance.constructor.name;
-            if(className.startsWith('GameFuseExample')){
-                className = className.substring('GameFuseExample'.length);
+
+            if(success){
+                // Hallelujah!
+                let className = testClassInstance.constructor.name;
+                if(className.startsWith('GameFuseExample')){
+                    className = className.substring('GameFuseExample'.length);
+                }
+                console.log(`Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE ${className.toUpperCase()} TEST SCRIPT WITH NO ERRORS.`);
             }
-            console.log(`Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE ${className.toUpperCase()} TEST SCRIPT WITH NO ERRORS.`)
         }
     }
 
@@ -42,19 +49,40 @@ class GameFuseTestingUtilities {
     }
 
     static expect(actual) {
+        const handleResult = (conditionResult, expectedStatement, optionalLog = '') => {
+            if(conditionResult) {
+                console.log(`   - Test passed! ${optionalLog}`);
+            } else {
+                throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog})` : ''} : expected ${actual} to ${expectedStatement}`);
+            }
+        };
+
         return {
             toEqual: (expected, optionalLog = '') => {
-                if (actual === expected) {
-                    console.log(`   - Test passed! ${optionalLog}`);
-                } else {
-                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
-                }
+                handleResult(actual === expected, `equal ${expected}`, optionalLog);
             },
             notToEqual: (expected, optionalLog = '') => {
-                if (actual !== expected) {
-                    console.log(`   - Test passed! ${optionalLog}`);
-                } else {
-                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
+                handleResult(actual !== expected, `not equal ${expected}`, optionalLog);
+            },
+            toEqualObject: (expected, optionalLog = '') => {
+                let stringifiedActual = JSON.stringify(actual);
+                let stringifiedExpected = JSON.stringify(expected);
+
+                handleResult(stringifiedActual === stringifiedExpected, `equal ${stringifiedExpected}`, optionalLog);
+            },
+            toBePresent: (optionalLog = '') => {
+                handleResult(actual != null, 'be present', optionalLog);
+            },
+            toBeBlank: (optionalLog = '') => {
+                handleResult(actual == null, 'be blank (null or undefined)', optionalLog);
+            },
+            toRaiseError: async (expectedMessage, optionalLog = '') => {
+                try {
+                    await actual()
+
+                    throw('No error occurred!!!!') // if we make it here, then no error occurred.
+                } catch (e) {
+                    Test.expect(e).toEqual(expectedMessage, optionalLog)
                 }
             }
         };

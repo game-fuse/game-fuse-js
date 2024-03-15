@@ -13,10 +13,6 @@ class GameFuseJsonHelper {
             return GameFuseUser.UserCache[userData.id]
         }
 
-        const attributes = userData.game_user_attributes && this.formatUserAttributes(userData.game_user_attributes);
-        const purchasedStoreItems = userData.game_user_store_items && userData.game_user_attributes.map(item => this.convertJsonToStoreItem(item));
-        const leaderboardEntries = userData.leaderboard_entries && userData.leaderboard_entries.map(entryData => this.convertJsonToLeaderboardEntry(entryData));
-
         let userObj = new GameFuseUser(
             false,
             undefined,
@@ -26,9 +22,6 @@ class GameFuseJsonHelper {
             userData.score,
             userData.credits,
             userData.id,
-            attributes,
-            purchasedStoreItems,
-            leaderboardEntries,
             userData.id !== GameFuseUser.CurrentUser?.getID() // will be 'true' if they are not equal (that is, isOtherUser => true)
         );
 
@@ -144,7 +137,23 @@ class GameFuseJsonHelper {
         )
     }
 
-    static setRelationalDataInternal(apiData){
+    static convertJsonToGameRound(gameRoundData, userObj = null) {
+        return new GameFuseGameRound(
+            gameRoundData.id,
+            gameRoundData.game_id,
+            gameRoundData.game_type,
+            gameRoundData.start_time && new Date(gameRoundData.start_time),
+            gameRoundData.end_time && new Date(gameRoundData),
+            gameRoundData.score,
+            gameRoundData.place,
+            gameRoundData.metadata,
+            gameRoundData.multiplayer_game_round_id,
+            gameRoundData.multiplayer_game_round_id == null ? [] : GameFuseGameRound.buildRankings(gameRoundData.rankings)
+        );
+    }
+
+    // on sign-in and on downloadFullUserData, takes the response and sets all attributes on the user object.
+    static setFullUserData(apiData, userObj){
         let friendsData = apiData.friends;
         let incomingFriendReqData = apiData.incoming_friend_requests;
         let outgoingFriendReqData = apiData.outgoing_friend_requests
@@ -153,52 +162,59 @@ class GameFuseJsonHelper {
         let groupsData = apiData.groups;
         let groupInvitesData = apiData.group_invites;
         let groupJoinRequestsData = apiData.group_join_requests;
+        let gameRoundsData = apiData.game_rounds;
 
         if(friendsData != null) {
-            GameFuseUser.CurrentUser.friends = friendsData.map(friendData => {
+            userObj.friends = friendsData.map(friendData => {
                 return GameFuseJsonHelper.convertJsonToUser(friendData);
             });
         }
 
         if(incomingFriendReqData != null) {
-            GameFuseUser.CurrentUser.incomingFriendRequests = incomingFriendReqData.map(friendReqData => {
+            userObj.incomingFriendRequests = incomingFriendReqData.map(friendReqData => {
                 return GameFuseJsonHelper.convertJsonToFriendRequest(friendReqData);
             })
         }
 
         if(outgoingFriendReqData != null) {
-            GameFuseUser.CurrentUser.outgoingFriendRequests = outgoingFriendReqData.map(friendReqData => {
+            userObj.outgoingFriendRequests = outgoingFriendReqData.map(friendReqData => {
                 return GameFuseJsonHelper.convertJsonToFriendRequest(friendReqData);
             })
         }
 
         if(directChats != null) {
-            GameFuseUser.CurrentUser.directChats = directChats.map(chatData => {
+            userObj.directChats = directChats.map(chatData => {
                 return GameFuseJsonHelper.convertJsonToChat(chatData);
             });
         }
 
-        if(groupChats != null){
-            GameFuseUser.CurrentUser.groupChats = groupChats.map(chatData => {
+        if(groupChats != null) {
+            userObj.groupChats = groupChats.map(chatData => {
                 return GameFuseJsonHelper.convertJsonToChat(chatData);
             });
         }
 
-        if(groupsData != null){
-            GameFuseUser.CurrentUser.groups = groupsData.map(groupData => {
+        if(groupsData != null) {
+            userObj.groups = groupsData.map(groupData => {
                 return GameFuseJsonHelper.convertJsonToGroup(groupData);
             })
         }
 
-        if(groupInvitesData != null){
-            GameFuseUser.CurrentUser.groupInvites = groupInvitesData.map(groupInviteData => {
+        if(groupInvitesData != null) {
+            userObj.groupInvites = groupInvitesData.map(groupInviteData => {
                 return GameFuseJsonHelper.convertJsonToGroupInvite(groupInviteData);
             })
         }
 
-        if(groupJoinRequestsData != null){
-            GameFuseUser.CurrentUser.groupJoinRequests = groupJoinRequestsData.map(groupJoinRequestData => {
+        if(groupJoinRequestsData != null) {
+            userObj.groupJoinRequests = groupJoinRequestsData.map(groupJoinRequestData => {
                 return GameFuseJsonHelper.convertJsonToGroupJoinRequest(groupJoinRequestData);
+            })
+        }
+
+        if(gameRoundsData != null) {
+            userObj.gameRounds = gameRoundsData.map(gameRoundData => {
+                return GameFuseJsonHelper.convertJsonToGameRound(gameRoundData);
             })
         }
     }

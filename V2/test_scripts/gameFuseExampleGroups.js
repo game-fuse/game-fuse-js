@@ -91,10 +91,10 @@ class GameFuseExampleGroups {
                 Test.expect(groupMembers.length).toEqual(2, 'there should be 2 members');
                 Test.expect(group.getMemberCount()).toEqual(2, 'member count should be 2');
 
-                let actualMembers = JSON.stringify(groupMembers.map(member => member.getID()).sort());
-                let expectedMembers = JSON.stringify([this.user1.getID(), this.user2.getID()].sort());
+                let actualMembers = groupMembers.map(member => member.getID()).sort();
+                let expectedMembers = [this.user1.getID(), this.user2.getID()].sort();
 
-                Test.expect(actualMembers).toEqual(expectedMembers, 'the members in the group should be users 1 and 2');
+                Test.expect(actualMembers).toEqualObject(expectedMembers, 'the members in the group should be users 1 and 2');
 
                 const findUser2 = (users) => users.find(user => user.getID() === this.user2.getID());
 
@@ -128,7 +128,7 @@ class GameFuseExampleGroups {
                 let groupMembers = group.getMembers();
                 Test.expect(groupMembers.length).toEqual(2, 'there should be 2 members in the group');
                 Test.expect(group.getMemberCount()).toEqual(2, 'the memberCount should be 2');
-                Test.expect(JSON.stringify(groupMembers.map(member => member.getID()).sort())).toEqual(JSON.stringify([this.user1.getID(), this.user2.getID()].sort()), 'The same 2 group members should still be there, without user3')
+                Test.expect(groupMembers.map(member => member.getID()).sort()).toEqualObject([this.user1.getID(), this.user2.getID()].sort(), 'The same 2 group members should still be there, without user3')
             });
 
             await Test.describe('CANCEL GROUP JOIN REQUEST', async () => {

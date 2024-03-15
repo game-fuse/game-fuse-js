@@ -206,11 +206,7 @@ class GameFuseGroup {
                 GameFuse.Log('GameFuseGroup update Success');
 
                 // update the group object with the response data from the API
-                let updatedGroupData = response.data;
-                for (let key in attributesToUpdate) {
-                    let snakeCaseKey = keyMapping[key];
-                    this[key] = updatedGroupData[snakeCaseKey]
-                }
+                this.assignAttributes(response.data);
             }
 
             GameFuseUtilities.HandleCallback(
@@ -223,6 +219,19 @@ class GameFuseGroup {
             console.log(error);
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
+    }
+
+    assignAttributes(updatedAttributes) {
+        Object.assign(this, {
+            id: updatedAttributes.id,
+            name: updatedAttributes.name,
+            canAutoJoin: updatedAttributes.can_auto_join,
+            isInviteOnly: updatedAttributes.is_invite_only,
+            maxGroupSize: updatedAttributes.max_group_size,
+            memberCount: updatedAttributes.member_count,
+            members: updatedAttributes.members ? updatedAttributes.members.map(memberData => GameFuseJsonHelper.convertJsonToUser(memberData)) : this.members,
+            admins: updatedAttributes.admins ? updatedAttributes.admins.map(adminData => GameFuseJsonHelper.convertJsonToUser(adminData)) : this.admins
+        });
     }
 
     async destroy(callback = undefined) {
@@ -281,16 +290,8 @@ class GameFuseGroup {
                 GameFuse.Log('GameFuseGroup downloadFullData success');
                 // instead of creating a new object, update this object, so that the game developer can continue using the reference they already have from the GroupCache.
                 let data = response.data;
-                Object.assign(this, {
-                    id: data.id,
-                    name: data.name,
-                    canAutoJoin: data.can_auto_join,
-                    isInviteOnly: data.is_invite_only,
-                    maxGroupSize: data.max_group_size,
-                    memberCount: data.member_count,
-                    members: data.members.map(memberData => GameFuseJsonHelper.convertJsonToUser(memberData)),
-                    admins: data.admins.map(adminData => GameFuseJsonHelper.convertJsonToUser(adminData))
-                });
+
+                this.assignAttributes(data);
 
                 // Handle join requests and invites after assigning the above attributes so that we can pass in the updated object instance to create these objects.
                 // Note that this data will not be returned from the API if the current user isn't an admin of the group.

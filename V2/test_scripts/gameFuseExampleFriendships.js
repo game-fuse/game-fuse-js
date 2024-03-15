@@ -35,9 +35,9 @@ class GameFuseExampleFriendships {
                     await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {
                         console.log('User1 signed in')
                     })
-                    let incomingFriendRequestUsernames = JSON.stringify(GameFuseUser.CurrentUser.getIncomingFriendRequests().map(friendRequest => friendRequest.getOtherUser().getUsername()).sort());
-                    let expectedUsernames = JSON.stringify([this.user2.getUsername(), this.user3.getUsername()].sort());
-                    Test.expect(incomingFriendRequestUsernames).toEqual(expectedUsernames, "user1's incoming friend requests should have both user1 and user2")
+                    let incomingFriendRequestUsernames = GameFuseUser.CurrentUser.getIncomingFriendRequests().map(friendRequest => friendRequest.getOtherUser().getUsername()).sort();
+                    let expectedUsernames = [this.user2.getUsername(), this.user3.getUsername()].sort();
+                    Test.expect(incomingFriendRequestUsernames).toEqualObject(expectedUsernames, "user1's incoming friend requests should have both user1 and user2")
                     Test.expect(currentUser().getOutgoingFriendRequests().length).toEqual(0, 'check that user1 has no outgoing friend requests.');
                 });
             })

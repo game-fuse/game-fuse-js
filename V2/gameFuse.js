@@ -181,15 +181,16 @@ class GameFuse {
             this.Log(`GameFuse Sign In Success: ${email}`);
 
             GameFuse.resetGlobalVariables();
-            GameFuseUser.CurrentUser.setSignedInInternal();
-            GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
-            GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));
-            GameFuseUser.CurrentUser.setUsernameInternal(response.data.username);
-            GameFuseUser.CurrentUser.setLastLoginInternal(new Date(response.data.last_login));
-            GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
-            GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
-            GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
-            GameFuseJsonHelper.setRelationalDataInternal(response.data);
+            let currentUser = GameFuseUser.CurrentUser;
+            currentUser.setSignedInInternal();
+            currentUser.setScoreInternal(parseInt(response.data.score));
+            currentUser.setCreditsInternal(parseInt(response.data.credits));
+            currentUser.setUsernameInternal(response.data.username);
+            currentUser.setLastLoginInternal(new Date(response.data.last_login));
+            currentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
+            currentUser.setAuthenticationTokenInternal(response.data.authentication_token);
+            currentUser.setIDInternal(parseInt(response.data.id));
+            GameFuseJsonHelper.setFullUserData(response.data, currentUser);
 
             // add the current user to the UserCache.
             GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
