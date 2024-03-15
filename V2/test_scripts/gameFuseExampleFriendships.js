@@ -2,18 +2,14 @@ const Test = GameFuseTestingUtilities;
 const currentUser = () => GameFuseUser.CurrentUser;
 
 class GameFuseExampleFriendships {
-    constructor(token, id) {
-        this.gameToken = token;
-        this.gameID = id;
+    constructor() {
+        // nothing to see here...
     }
 
-    start() {
-        GameFuseTestingUtilities.startTest(this.testFriendships.bind(this), this)
-    }
-
-    async testFriendships() {
+    async run() {
         Test.performTestLogic(this, async () => {
-            // 1. Sign up 5 users
+
+            // Sign up 5 users
             for (let userNumber = 1; userNumber <= 5; userNumber++) {
                 this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
             }
@@ -41,9 +37,9 @@ class GameFuseExampleFriendships {
                     await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {
                         console.log('User1 signed in')
                     })
-                    let incomingFriendRequestUsernames = JSON.stringify(GameFuseUser.CurrentUser.getIncomingFriendRequests().map(friendRequest => friendRequest.getOtherUser().getUsername()).sort());
-                    let expectedUsernames = JSON.stringify([this.user2.getUsername(), this.user3.getUsername()].sort());
-                    Test.expect(incomingFriendRequestUsernames).toEqual(expectedUsernames, "user1's incoming friend requests should have both user1 and user2")
+                    let incomingFriendRequestUsernames = GameFuseUser.CurrentUser.getIncomingFriendRequests().map(friendRequest => friendRequest.getOtherUser().getUsername()).sort();
+                    let expectedUsernames = [this.user2.getUsername(), this.user3.getUsername()].sort();
+                    Test.expect(incomingFriendRequestUsernames).toEqualObject(expectedUsernames, "user1's incoming friend requests should have both user1 and user2");
                     Test.expect(currentUser().getOutgoingFriendRequests().length).toEqual(0, 'check that user1 has no outgoing friend requests.');
                 });
             })
@@ -135,6 +131,4 @@ class GameFuseExampleFriendships {
     }
 }
 
-const example = new GameFuseExampleFriendships(ENV.gameToken, ENV.gameId);
-
-example.start()
+new GameFuseExampleFriendships().run();
