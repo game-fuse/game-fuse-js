@@ -861,6 +861,3 @@ class GameFuseUser {
         }
     }
 }
-
-
-// TODO: clean up all updates/creates to use a helper method to update/set the new api data on the object. maybe a method in each class to handle that class's updates.
