@@ -339,6 +339,4 @@ class GameFuse {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : "undefined", "an error occured", callback, false);
         }
     }
-
-
 }
