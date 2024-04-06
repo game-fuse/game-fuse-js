@@ -11,7 +11,7 @@ class GameFuseExampleFriendships {
 
             // Sign up 5 users
             for (let userNumber = 1; userNumber <= 5; userNumber++) {
-                this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
+                this[`user${userNumber}`] = await Test.createUser(this.gameID, () => console.log(`signed up user ${userNumber}`));
             }
             await Test.describe('SENDING FRIEND REQUESTS', async () => {
                 await Test.test('2: USER 2 FRIEND REQUESTS USER 1 (USERNAME METHOD)', async () => {

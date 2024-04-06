@@ -10,7 +10,7 @@ class GameFuseExampleGameRounds {
         Test.performTestLogic(this, async () => {
             // Sign up 3 users
             for (let userNumber = 1; userNumber <= 3; userNumber++) {
-                this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user${userNumber}`));
+                this[`user${userNumber}`] = await Test.createUser(this.gameID, () => console.log(`signed up user${userNumber}`));
             }
 
             await Test.describe('Sign in, expect basic data arrays', async () => {

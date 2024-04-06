@@ -11,6 +11,8 @@ class GameFuseUser {
         this.credits = credits;
         this.id = id;
         this.isOtherUser = isOtherUser;
+        
+        this.isNewUser = undefined; // this gets set on the sign-in request.
 
         // All of the below data attributes are set on subsequent requests, after initialization of the object, so we don't need to instantiate them
         // with anything other than empty data structures to show visually/semantically that they are indeed set eventually.
@@ -113,6 +115,10 @@ class GameFuseUser {
 
     getAuthenticationToken() {
         return this.authenticationToken;
+    }
+    
+    getIsNewUser() {
+        return this.isNewUser;
     }
 
     getUsername() {

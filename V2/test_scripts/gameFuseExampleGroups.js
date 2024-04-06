@@ -11,7 +11,7 @@ class GameFuseExampleGroups {
             console.log('WE ARE UP AND RUNNING BABY')
 
             for (let userNumber = 6; userNumber >= 1; userNumber--) {
-                this[`user${userNumber}`] = await Test.createUser(() => {
+                this[`user${userNumber}`] = await Test.createUser(this.gameID, () => {
                     console.log(`signed up user ${userNumber}`)
                 });
             }

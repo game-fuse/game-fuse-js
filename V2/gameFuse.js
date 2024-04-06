@@ -8,6 +8,7 @@ class GameFuse {
         this.name = "";
         this.description = "";
         this.verboseLogging = false;
+        this.authenticationCompleteCallback = undefined; // gets set via GameFuse.setAuthenticationCompleteCallback(callback);
         this.store = [];
         this.leaderboardEntries = [];
     }
@@ -144,39 +145,53 @@ class GameFuse {
                 parseInt(storeItem.id),
                 storeItem.icon_url
             ));
+            
+            // figure out if this is coming from oauth - if so, sign them in.
+            let tempOauthTransferToken = new URLSearchParams(window.location.search).get('temp_oauth_transfer_token');
+            if(tempOauthTransferToken){
+                GameFuse.signIn(null, null, callback, tempOauthTransferToken);
+            } else {
+                GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has been set up!", callback, true);
+            }
+            
         } else {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has failed to set up!", callback, false);
             this.Log("GameFuse Downloading Store Items Failed");
         }
-        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "Game has been set up!", callback, true);
     }
 
     static getStoreItems() {
         return this.Instance.store;
     }
 
-    static signIn(email, password, callback = undefined) {
-        return this.Instance.signInPrivate(email, password, callback);
+    static signIn(email, password, callback = undefined, tempOauthTransferToken = undefined) {
+        return this.Instance.signInPrivate(email, password, callback, tempOauthTransferToken);
     }
 
-    async signInPrivate(email, password, callback = undefined) {
-        await this.signInRoutine(email, password, callback);
+    async signInPrivate(email, password, callback = undefined, tempOauthTransferToken = undefined) {
+        await this.signInRoutine(email, password, callback, tempOauthTransferToken);
     }
 
-    async signInRoutine(email, password, callback = undefined) {
+    async signInRoutine(email, password, callback = undefined, tempOauthTransferToken = undefined) {
         this.Log(`GameFuse Sign In: ${email}`);
         if (GameFuse.getGameId() == null) {
-            throw new Error("Please set up your game with PainLessAuth.SetUpGame before signing in users");
+            throw new Error("Please set up your game with GameFuse.SetUpGame before signing in users");
         }
         const formData = new FormData();
-        formData.append("email", email);
-        formData.append("password", password);
         formData.append("game_id", GameFuse.getGameId());
+        if (tempOauthTransferToken) {
+            formData.append("temp_oauth_transfer_token", tempOauthTransferToken);
+        } else {
+            formData.append("email", email);
+            formData.append("password", password);
+        }
+
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/sessions`, {
             method: "POST",
             body: formData
         });
         const responseOk = await GameFuseUtilities.requestIsOk(response)
+        let responseMsg;
         if (responseOk) {
             this.Log(`GameFuse Sign In Success: ${email}`);
 
@@ -190,14 +205,21 @@ class GameFuse {
             currentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
             currentUser.setAuthenticationTokenInternal(response.data.authentication_token);
             currentUser.setIDInternal(parseInt(response.data.id));
+            
+            currentUser.isNewUser = response.data.is_new_user;
+            
             GameFuseJsonHelper.setFullUserData(response.data, currentUser);
 
             // add the current user to the UserCache.
             GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
+            
+            responseMsg = tempOauthTransferToken ? 'Game setup AND OAuth user has been authenticated' : 'User has been signed in successfully';
         } else {
             this.Log(`GameFuse Sign In Failure: ${email}`);
-            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User has been signed in successfully", callback, true);
+            
+            responseMsg = tempOauthTransferToken ? 'Game setup, but OAuth authentication failed' : 'ERROR: user has not been signed in successfully';
         }
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, responseMsg, callback, !!responseOk);
     }
 
     static signUp(email, password, password_confirmation, username, callback = undefined) {
@@ -211,7 +233,7 @@ class GameFuse {
     async signUpRoutine(email, password, password_confirmation, username, callback = undefined) {
         console.log("GameFuse Sign Up: " + email);
         if (GameFuse.getGameId() == null)
-            throw new GameFuseException("Please set up your game with PainLessAuth.SetUpGame before signing up users");
+            throw new GameFuseException("Please set up your game with GameFuse.SetUpGame before signing up users");
 
         const form = new FormData();
         form.append("email", email);
@@ -230,17 +252,20 @@ class GameFuse {
                 console.log("GameFuse Sign Up Success: " + email);
 
                 GameFuse.resetGlobalVariables();
-                GameFuseUser.CurrentUser.setSignedInInternal();
-                GameFuseUser.CurrentUser.setScoreInternal(parseInt(response.data.score));
-                GameFuseUser.CurrentUser.setCreditsInternal(parseInt(response.data.credits));
-                GameFuseUser.CurrentUser.setUsernameInternal(response.data.username);
-                GameFuseUser.CurrentUser.setLastLoginInternal(new Date(response.data.last_login));
-                GameFuseUser.CurrentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
-                GameFuseUser.CurrentUser.setAuthenticationTokenInternal(response.data.authentication_token);
-                GameFuseUser.CurrentUser.setIDInternal(parseInt(response.data.id));
+                let currentUser = GameFuseUser.CurrentUser;
+                currentUser.setSignedInInternal();
+                currentUser.setScoreInternal(parseInt(response.data.score));
+                currentUser.setCreditsInternal(parseInt(response.data.credits));
+                currentUser.setUsernameInternal(response.data.username);
+                currentUser.setLastLoginInternal(new Date(response.data.last_login));
+                currentUser.setNumberOfLoginsInternal(parseInt(response.data.number_of_logins));
+                currentUser.setAuthenticationTokenInternal(response.data.authentication_token);
+                currentUser.setIDInternal(parseInt(response.data.id));
+
+                currentUser.isNewUser = response.data.is_new_user;
 
                 // add the current user to the UserCache
-                GameFuseUser.UserCache[GameFuseUser.CurrentUser.getID()] = GameFuseUser.CurrentUser;
+                GameFuseUser.UserCache[currentUser.getID()] = currentUser;
             } else {
                 console.log("GameFuse Sign Up Failure: " + email);
                 await GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "User could not sign up: " + response.error, callback, false);
@@ -319,7 +344,7 @@ class GameFuse {
     async sendPasswordResetEmailRoutine(email, callback = undefined) {
         this.Log(`GameFuse Send Password Reset: ${email}`);
         if (GameFuse.getGameId() == null) {
-            throw new Error("Please set up your game with PainLessAuth.SetUpGame before signing in users");
+            throw new Error("Please set up your game with GameFuse.SetUpGame before signing in users");
         }
         const parameters = "?game_token=" + GameFuse.getGameToken() + "&game_id=" + GameFuse.getGameId().toString() + "&email=" + email;
         const url = GameFuse.getBaseURL() + "/games/" + GameFuse.getGameId() + "/forget_password" + parameters;
