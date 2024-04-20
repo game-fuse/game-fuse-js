@@ -1,6 +1,3 @@
-const Test = GameFuseTestingUtilities;
-const currentUser = () => GameFuseUser.CurrentUser;
-
 class GameFuseExampleMessages {
 
     constructor() {
@@ -8,8 +5,7 @@ class GameFuseExampleMessages {
     }
 
     async run() {
-
-        Test.performTestLogic(this, async () => {
+        await Test.performTestLogic(this, async () => {
             // sign up 3 users
             for (let userNumber = 1; userNumber <= 3; userNumber++) {
                 this[`user${userNumber}`] = await Test.createUser(this.gameID, () => console.log(`created user ${userNumber}`));
@@ -171,5 +167,3 @@ class GameFuseExampleMessages {
         });
     }
 }
-
-new GameFuseExampleMessages().run();

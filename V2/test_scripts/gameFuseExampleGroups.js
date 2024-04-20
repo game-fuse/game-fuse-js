@@ -1,23 +1,21 @@
-const Test = GameFuseTestingUtilities;
-const currentUser = () => GameFuseUser.CurrentUser;
-
 class GameFuseExampleGroups {
     constructor() {
         // nothing to see here...
     }
 
     async run() {
-        Test.performTestLogic(this, async () => {
-            console.log('WE ARE UP AND RUNNING BABY')
+        await Test.performTestLogic(this, async () => {
+
+            console.log('WE ARE UP AND RUNNING BABY');
 
             for (let userNumber = 6; userNumber >= 1; userNumber--) {
                 this[`user${userNumber}`] = await Test.createUser(this.gameID, () => {
                     console.log(`signed up user ${userNumber}`)
                 });
             }
-            
+
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('user1 signed in'));
-            
+
             await Test.describe('CREATE GROUP', async () => {
                 let options = {name: 'My Group 1', canAutoJoin: false, isInviteOnly: true, maxGroupSize: 20}
                 
@@ -45,7 +43,7 @@ class GameFuseExampleGroups {
                 let existingGroup = currentUser().getGroups()[0];
 
                 let options = {name: 'My Cool Group 1', canAutoJoin: true, isInviteOnly: false, maxGroupSize: 10}
-                
+
                 await Test.test('group.update(options)', async () => {
                     await existingGroup.update(options, () => console.log('group1 updated'));
                 })
@@ -386,10 +384,5 @@ class GameFuseExampleGroups {
                 Test.expect(group1InState).toEqual(undefined, 'This group should no longer exist in my group info since we just destroyed it.')
             });
         });
-
-        // TODO: move this into a test script for users, it doesn't quite belong here.
-        // TEST USER DOWNLOAD FULL DATA
     }
 }
-
-new GameFuseExampleGroups().run();
