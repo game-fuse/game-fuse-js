@@ -3,17 +3,13 @@ const currentUser = () => GameFuseUser.CurrentUser;
 
 class GameFuseExampleMessages {
 
-    constructor(token, id) {
-        this.gameToken = token;
-        this.gameID = id;
+    constructor() {
+        // nothing to see here...
     }
 
-    start() {
-        GameFuseTestingUtilities.startTest(this.testMessaging.bind(this), this)
-    }
+    async run() {
 
-    async testMessaging(message, hasError) {
-        try {
+        Test.performTestLogic(this, async () => {
             // sign up 3 users
             for (let userNumber = 1; userNumber <= 3; userNumber++) {
                 this[`user${userNumber}`] = await Test.createUser(() => console.log(`created user ${userNumber}`));
@@ -117,9 +113,9 @@ class GameFuseExampleMessages {
                 let participants = groupChat.getParticipants();
                 Test.expect(participants.length).toEqual(3, 'the group chat should have 3 participants');
 
-                let actualChatUsernames = JSON.stringify(participants.map(part => part.getUsername()).sort())
-                let expectedChatUsernames = JSON.stringify([this.user1.getUsername(), this.user2.getUsername(), this.user3.getUsername()].sort())
-                Test.expect(actualChatUsernames).toEqual(expectedChatUsernames, 'the participants should have user1, 2, and 3 usernames inside of GameFuseUser objects');
+                let actualChatUsernames = participants.map(part => part.getUsername()).sort()
+                let expectedChatUsernames = [this.user1.getUsername(), this.user2.getUsername(), this.user3.getUsername()].sort()
+                Test.expect(actualChatUsernames).toEqualObject(expectedChatUsernames, 'the participants should have user1, 2, and 3 usernames inside of GameFuseUser objects');
             })
 
             await Test.test('User3 sends 30 messages to the group chat', async () => {
@@ -169,19 +165,11 @@ class GameFuseExampleMessages {
                 await GameFuseChat.getOlderChats(2, () => {
                     console.log('got the 2nd page of chats')
                 });
+
                 Test.expect(currentUser().getDirectChats().length).toEqual(27, 'There should now be all 27 chats in the array after getting the rest of the chats from the API');
             })
-
-            // Hallelujah!
-            console.log("Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE MESSAGING TEST SCRIPT WITH NO ERRORS.")
-        } catch (error) {
-            console.log(error);
-        } finally {
-            await Test.cleanUpTest(this, () => console.log('done cleaning up test data'));
-        }
+        });
     }
 }
 
-const example = new GameFuseExampleMessages(ENV.gameToken, ENV.gameId);
-
-example.start()
+new GameFuseExampleMessages().run();

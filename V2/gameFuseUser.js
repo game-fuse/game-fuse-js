@@ -1,8 +1,7 @@
 ﻿// V2
 class GameFuseUser {
     constructor(signedIn = false, numberOfLogins = 0, lastLogin = undefined, authenticationToken = "",
-        username = "", score = 0, credits = 0, id = 0, attributes = {}, purchasedStoreItems = [],
-        leaderboardEntries = [], isOtherUser = false) {
+        username = "", score = 0, credits = 0, id = 0, isOtherUser = false) {
         this.signedIn = signedIn;
         this.numberOfLogins = numberOfLogins;
         this.lastLogin = lastLogin;
@@ -11,22 +10,26 @@ class GameFuseUser {
         this.score = score;
         this.credits = credits;
         this.id = id;
-        this.attributes = attributes;
+        this.isOtherUser = isOtherUser;
+
+        // All of the below data attributes are set on subsequent requests, after initialization of the object, so we don't need to instantiate them
+        // with anything other than empty data structures to show visually/semantically that they are indeed set eventually.
         this.dirtyAttributes = {};
-        this.purchasedStoreItems = purchasedStoreItems;
-        this.leaderboardEntries = leaderboardEntries;
+        this.attributes = [];
+        this.purchasedStoreItems = [];
+        this.leaderboardEntries = [];
         this.friends = [];
         this.outgoingFriendRequests = []; // only the ones that you've sent
         this.incomingFriendRequests = []; // only the ones that you need to respond to
-        this.isOtherUser = isOtherUser;
 
-        // start relational data. These get set when the response arrives back from the signIn method. See: setRelationalDataInternal
+        // start full relational data. These get set when the response arrives back from the signIn method. See: setFullUserData
         this.directChats = [];
         this.groupChats = [];
         this.groups = [];
         this.groupInvites = [];
         this.groupJoinRequests = [];
         this.downloadedAvailableGroups = [];
+        this.gameRounds = [];
     }   
 
     static get CurrentUser() {
@@ -170,6 +173,10 @@ class GameFuseUser {
 
     getDownloadedAvailableGroups() {
         return this.downloadedAvailableGroups;
+    }
+
+    getGameRounds() {
+        return this.gameRounds;
     }
 
     // solely for the test scripts
@@ -406,8 +413,7 @@ class GameFuseUser {
       this.dirtyAttributes[key] = val;
     }
 
-    async syncLocalAttributes(callback=undefined)
-    {
+    async syncLocalAttributes(callback= undefined) {
       this.setAttributes(this.attributes, callback, true);
     }
 
@@ -817,5 +823,41 @@ class GameFuseUser {
         console.log(error)
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
+    }
+
+    async downloadFullData(callback, dataTypes = null) {
+        try {
+            GameFuse.Log(`GameFuseUser getting full user data for ${this.getUsername()}`);
+
+            const url = `${GameFuse.getBaseURL()}/users/${this.getID()}`;
+
+            // TODO: specific dataTypes coming soon, where you can pick specifically which data to pull back from the API.
+            // params = { data_types: dataTypes }
+
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+                }
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+            if (responseOk) {
+                GameFuse.Log("GameFuseUser downloadFullData Success");
+
+                GameFuseJsonHelper.setFullUserData(response.data, this);
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Full data for user ${this.getUsername()} has been uccessfully downloaded` : response.data, // message from the api
+                callback,
+                !!responseOk
+            )
+        } catch (error) {
+            console.log(error);
+            GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+        }
     }
 }

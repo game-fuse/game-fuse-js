@@ -5,24 +5,39 @@ class GameFuseTestingUtilities {
     // }
 
     static async performTestLogic(testClassInstance, testLogic) {
+        let success = null; // used in the `finally` block.
+
         try {
-            // await this.setupTestGame(testClassInstance, () => console.log('created game and set values'))
+            await this.setupTest(testClassInstance);
             await testLogic();
+            success = true;
         } catch (error) {
             console.log(error);
+            success = false;
         } finally {
-            this.cleanUpTest(testClassInstance, () => console.log('HALLELUJAH! we have made it to the end of the test.'))
+            await this.cleanUpTest(testClassInstance, () => console.log('Cleaned up test data'))
+
+            if(success){
+                // Hallelujah!
+                let className = testClassInstance.constructor.name;
+                if(className.startsWith('GameFuseExample')){
+                    className = className.substring('GameFuseExample'.length);
+                }
+                console.log(`Hallelujah! SUCCESS! WE MADE IT TO THE END OF OF THE ${className.toUpperCase()} TEST SCRIPT WITH NO ERRORS.`);
+            }
         }
     }
 
-    static async startTest(testMethod, testClassInstance){
+    static async setupTest(testClassInstance){
         await Test.setupTestGame(testClassInstance, () => console.log('created game and set values'))
 
         if (testClassInstance.gameToken && testClassInstance.gameID) {
             console.log("GameFuse start");
 
             GameFuse.setVerboseLogging(false);
-            GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, testMethod, true);
+            await GameFuse.setUpGame(testClassInstance.gameID, testClassInstance.gameToken, () => console.log('finished setting up game'));
+
+            console.log('ready to rip!')
         } else {
             console.log(
                 "Add ID and Token",
@@ -34,19 +49,42 @@ class GameFuseTestingUtilities {
     }
 
     static expect(actual) {
+        const handleResult = (condition, expectedStatement, optionalLog = '') => {
+            if(condition) {
+                console.log(`   - Test passed! ${optionalLog}`);
+            } else {
+                // throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog})` : ''} : expected ${actual} to ${expectedStatement}`);
+                throw(`   - TEST FAILED${optionalLog && ` (${optionalLog})`}: expected ${actual} to ${expectedStatement}`);
+            }
+        };
+
         return {
             toEqual: (expected, optionalLog = '') => {
-                if (actual === expected) {
-                    console.log(`   - Test passed! ${optionalLog}`);
-                } else {
-                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
-                }
+                handleResult(actual === expected, `equal ${expected}`, optionalLog);
             },
             notToEqual: (expected, optionalLog = '') => {
-                if (actual !== expected) {
-                    console.log(`   - Test passed! ${optionalLog}`);
-                } else {
-                    throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog}) ` : ''} : expected ${actual} to equal ${expected}`);
+                handleResult(actual !== expected, `not equal ${expected}`, optionalLog);
+            },
+            toEqualObject: (expected, optionalLog = '') => {
+                let stringifiedActual = JSON.stringify(actual);
+                let stringifiedExpected = JSON.stringify(expected);
+
+                handleResult(stringifiedActual === stringifiedExpected, `equal ${stringifiedExpected}`, optionalLog);
+            },
+            toBePresent: (optionalLog = '') => {
+                handleResult(actual != null, 'be present', optionalLog);
+            },
+            toBeBlank: (optionalLog = '') => {
+                handleResult(actual == null, 'be blank (null or undefined)', optionalLog);
+            },
+            toRaiseError: async (expectedMessage, optionalLog = '') => {
+                try {
+                    // in this case, 'actual' is a function that needs to be resolved by executing it.
+                    await actual()
+
+                    throw('No error occurred!!!!') // if we make it here, then no error occurred, which is the opposite of what we expect.
+                } catch (e) {
+                    Test.expect(e).toEqual(expectedMessage, optionalLog)
                 }
             }
         };
