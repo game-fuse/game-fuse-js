@@ -118,7 +118,7 @@ class GameFuseTestingUtilities {
         return callback()
     }
 
-    static async createUser(callback = undefined) {
+    static async createUser(gameID, callback = undefined) {
         try {
             let random = Math.floor(Math.random() * 1000000000000);
             let username = `user${random}`;
@@ -131,12 +131,13 @@ class GameFuseTestingUtilities {
 
             GameFuse.Log('Setting up game');
 
-            const url = `${GameFuse.getBaseURL()}/test_suite/create_user`;
+            const url = `${GameFuse.getBaseURL()}/test_suite/create_user?game_id=${gameID}`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'service-key': ENV.serviceToken
+                    'service-key-token': ENV.serviceKeyToken,
+                    'service-key-name': ENV.serviceKeyName
                 },
                 body: JSON.stringify(data)
             });
@@ -162,7 +163,8 @@ class GameFuseTestingUtilities {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'service-key': ENV.serviceToken
+                    'service-key-token': ENV.serviceKeyToken,
+                    'service-key-name': ENV.serviceKeyName
                 }
             });
 
@@ -189,12 +191,13 @@ class GameFuseTestingUtilities {
         try {
             GameFuse.Log('Setting up game');
 
-            const url = `${GameFuse.getBaseURL()}/test_suite/clean_up_test`;
+            const url = `${GameFuse.getBaseURL()}/test_suite/clean_up_test?game_id=${testClassInstance.gameID}`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'service-key': ENV.serviceToken
+                    'service-key-token': ENV.serviceKeyToken,
+                    'service-key-name': ENV.serviceKeyName
                 }
             });
 

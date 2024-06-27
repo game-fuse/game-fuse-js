@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Game Fuse Example</title>
+        <!-- TODO: figure out how to encrypt/store this client_id -->
+<!--        <meta name="google-signin-client_id" content="1029116813087-i87pgtr96kukl98e4ubicqh7kbt7mg09.apps.googleusercontent.com">-->
+    </head>
+    
+    <body>
+        <h1>GOOGLE OAUTH! Click the button to get started.</h1>
+        
+        <div style="display: flex; justify-content: center;">
+            
+            <!-- NOTE: you can include custom parameters here by doing data-some_custom_param='blah-blah-blah' -->
+            <div id="g_id_onload"
+                 data-client_id="1029116813087-f314f6m4r4f71jii1vmj6sgs6k04gi5g.apps.googleusercontent.com"
+                 data-context="use"
+                 data-ux_mode="popup"
+                 data-login_uri="http://localhost/api/v2/google_oauth"
+                 data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left">
+            </div>
+        </div>
+        
+        <!-- Load JavaScript files -->
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script src="../gameFuseUtilities.js"></script>
+        <script src="../gameFuseLeaderboardEntry.js"></script>
+        <script src="../gameFuseStoreItem.js"></script>
+        <script src="../gameFuseUser.js"></script>
+        <script src="../gameFuseFriendRequest.js"></script>
+        <script src="../gameFuseChat.js"></script>
+        <script src="../gameFuseMessage.js"></script>
+        <script src="../gameFuseGroup.js"></script>
+        <script src="../gameFuseGroupInvite.js"></script>
+        <script src="../gameFuseGroupJoinRequest.js"></script>
+        <script src="../gameFuseGameRound.js"></script>
+        <script src="../gameFuse.js"></script>
+        <script src="../environment.js"></script>
+        <script src="../gameFuseTestingUtilities.js"></script>
+        <script src="../gameFuseJsonHelper.js"></script>
+        <script src="gameFuseExampleGoogleOauth.js"></script>
+    </body>
+</html>

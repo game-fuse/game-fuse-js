@@ -1,6 +1,3 @@
-const Test = GameFuseTestingUtilities;
-const currentUser = () => GameFuseUser.CurrentUser;
-
 class GameFuseExampleMessages {
 
     constructor() {
@@ -8,11 +5,10 @@ class GameFuseExampleMessages {
     }
 
     async run() {
-
-        Test.performTestLogic(this, async () => {
+        await Test.performTestLogic(this, async () => {
             // sign up 3 users
             for (let userNumber = 1; userNumber <= 3; userNumber++) {
-                this[`user${userNumber}`] = await Test.createUser(() => console.log(`created user ${userNumber}`));
+                this[`user${userNumber}`] = await Test.createUser(this.gameID, () => console.log(`created user ${userNumber}`));
             }
 
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('signed in user1'));
@@ -147,7 +143,7 @@ class GameFuseExampleMessages {
 
                 await Test.test('25 different users create chats with user1 (to test pagination)', async () => {
                     for (let userNumber = 4; userNumber <= 28; userNumber++) {
-                        this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
+                        this[`user${userNumber}`] = await Test.createUser(this.gameID, () => console.log(`signed up user ${userNumber}`));
                         await GameFuse.signIn(this[`user${userNumber}`].getTestEmail(), 'password', () => console.log(`signed in user ${userNumber}`));
                         // test with both user object and username. If odd, pass username, if even, pass user object
 
@@ -171,5 +167,3 @@ class GameFuseExampleMessages {
         });
     }
 }
-
-new GameFuseExampleMessages().run();

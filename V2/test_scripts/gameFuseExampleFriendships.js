@@ -1,17 +1,14 @@
-const Test = GameFuseTestingUtilities;
-const currentUser = () => GameFuseUser.CurrentUser;
-
 class GameFuseExampleFriendships {
     constructor() {
         // nothing to see here...
     }
 
     async run() {
-        Test.performTestLogic(this, async () => {
+        await Test.performTestLogic(this, async () => {
 
             // Sign up 5 users
             for (let userNumber = 1; userNumber <= 5; userNumber++) {
-                this[`user${userNumber}`] = await Test.createUser(() => console.log(`signed up user ${userNumber}`));
+                this[`user${userNumber}`] = await Test.createUser(this.gameID, () => console.log(`signed up user ${userNumber}`));
             }
             await Test.describe('SENDING FRIEND REQUESTS', async () => {
                 await Test.test('2: USER 2 FRIEND REQUESTS USER 1 (USERNAME METHOD)', async () => {
@@ -122,13 +119,10 @@ class GameFuseExampleFriendships {
                 friends = GameFuseUser.CurrentUser.getFriends();
                 Test.expect(friends.length).toEqual(0, 'User2 should have 0 friends');
 
-                await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => {
-                });
+                await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('Signed in user1'));
                 friends = GameFuseUser.CurrentUser.getFriends();
                 Test.expect(friends.length).toEqual(0, 'user1 should have 0 friends');
             })
         })
     }
 }
-
-new GameFuseExampleFriendships().run();

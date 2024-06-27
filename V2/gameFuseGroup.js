@@ -189,9 +189,9 @@ class GameFuseGroup {
                 let snakeCaseKey = keyMapping[key];
                 updateParams[snakeCaseKey] = attributesToUpdate[key];
             }
-
+            
             let data = {group: updateParams}
-            const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}`
+            const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}`;
             const response = await GameFuseUtilities.processRequest(url, {
                 method: 'PUT',
                 headers: {
