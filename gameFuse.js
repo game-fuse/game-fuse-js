@@ -19,7 +19,7 @@
     }
 
     static getBaseURL() {
-        return "https://gamefuse.co/api/v1";
+        return ENV.baseUrl || "https://gamefuse.co/api/v1";
     }
 
     static getGameId() {

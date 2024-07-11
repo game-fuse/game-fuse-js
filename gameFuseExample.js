@@ -178,7 +178,7 @@
 
 
 
-const example = new GameFuseExample("e3cfb729-0140-4c7a-b16c-640fa4b81373", "1");
+const example = new GameFuseExample(ENV.gameToken, ENV.gameId);
 
 example.start()
 
