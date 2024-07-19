@@ -74,8 +74,6 @@ class GameFuseJsonHelper {
     }
 
     static convertJsonToMessage(messageData) {
-        console.log("CONVERTING JSON TO MESSAGE")
-        console.log(messageData)
         return new GameFuseMessage(
             messageData.id,
             messageData.text,
