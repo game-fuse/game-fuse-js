@@ -54,6 +54,7 @@ class GameFuseTestingUtilities {
                 console.log(`   - Test passed! ${optionalLog}`);
             } else {
                 // throw(`   - TEST FAILED${optionalLog ? ` (${optionalLog})` : ''} : expected ${actual} to ${expectedStatement}`);
+                alert(`   - TEST FAILED${optionalLog && ` (${optionalLog})`}: expected ${actual} to ${expectedStatement}`);
                 throw(`   - TEST FAILED${optionalLog && ` (${optionalLog})`}: expected ${actual} to ${expectedStatement}`);
             }
         };

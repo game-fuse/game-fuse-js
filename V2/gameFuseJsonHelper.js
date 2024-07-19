@@ -74,11 +74,16 @@ class GameFuseJsonHelper {
     }
 
     static convertJsonToMessage(messageData) {
+        console.log("CONVERTING JSON TO MESSAGE")
+        console.log(messageData)
         return new GameFuseMessage(
+            messageData.id,
             messageData.text,
             messageData.created_at,
             // the user object will already be in the UserCache, given that it's either the current user, or it's a chat participant, which is built before message (See convertJsonToChat),
-            GameFuseUser.UserCache[messageData.user_id]
+            GameFuseUser.UserCache[messageData.user_id],
+            messageData.read,
+            messageData.read_by,
         )
     }
 
