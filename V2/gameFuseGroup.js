@@ -1,7 +1,8 @@
 class GameFuseGroup {
-    constructor(id, name, canAutoJoin, isInviteOnly, maxGroupSize, memberCount, members = [], admins = [], joinRequests = [], invites = []) {
+    constructor(id, name, groupType, canAutoJoin, isInviteOnly, maxGroupSize, memberCount, members = [], admins = [], joinRequests = [], invites = []) {
         this.id = id;
         this.name = name;
+        this.groupType = groupType;
         this.canAutoJoin = canAutoJoin;
         this.isInviteOnly = isInviteOnly;
         this.maxGroupSize = maxGroupSize;
@@ -52,6 +53,10 @@ class GameFuseGroup {
 
     getInvites() {
         return this.invites;
+    }
+    
+    getGroupType() {
+        return this.groupType;
     }
 
     static async downloadAvailableGroups(callback = undefined) {
@@ -107,9 +112,9 @@ class GameFuseGroup {
                 name: attributes.name,
                 max_group_size: attributes.maxGroupSize,
                 can_auto_join: attributes.canAutoJoin,
-                is_invite_only: attributes.isInviteOnly
+                is_invite_only: attributes.isInviteOnly,
+                group_type: attributes.groupType || 'default'
             };
-
             let currentUser = GameFuseUser.CurrentUser;
 
             const response = await GameFuseUtilities.processRequest(url, {

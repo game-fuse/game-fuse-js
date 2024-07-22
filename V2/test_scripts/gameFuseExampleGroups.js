@@ -17,7 +17,7 @@ class GameFuseExampleGroups {
             await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('user1 signed in'));
 
             await Test.describe('CREATE GROUP', async () => {
-                let options = {name: 'My Group 1', canAutoJoin: false, isInviteOnly: true, maxGroupSize: 20}
+                let options = {name: 'My Group 1', groupType: "multiplayer_party", canAutoJoin: false, isInviteOnly: true, maxGroupSize: 20}
                 
                 await Test.test('GameFuseGroup.create(options)', async () => {
                     await GameFuseGroup.create(options, () => console.log('group1 created'));
@@ -26,11 +26,13 @@ class GameFuseExampleGroups {
                 // get it through the current user to make sure the relations are working correctly
                 let createdGroup = currentUser().getGroups()[0];
 
+
                 Test.expect(createdGroup.getName()).toEqual('My Group 1');
                 Test.expect(createdGroup.getCanAutoJoin()).toEqual(false, 'auto join should be false');
                 Test.expect(createdGroup.getIsInviteOnly()).toEqual(true, 'invite only should be true');
                 Test.expect(createdGroup.getMaxGroupSize()).toEqual(20, 'max group size should be 20');
                 Test.expect(createdGroup.getMemberCount()).toEqual(1, 'member count should be 1');
+                Test.expect(createdGroup.getGroupType()).toEqual('multiplayer_party', 'group_type should be "multiplayer_party"');
 
                 let meAsMember = createdGroup.getMembers()[0];
                 Test.expect(meAsMember.getID()).toEqual(this.user1.getID(), 'I should be a member of the group');

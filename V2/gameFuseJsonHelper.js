@@ -93,6 +93,7 @@ class GameFuseJsonHelper {
         let gameFuseGroup = new GameFuseGroup(
             groupData.id,
             groupData.name,
+            groupData.group_type,
             groupData.can_auto_join,
             groupData.is_invite_only,
             groupData.max_group_size,
