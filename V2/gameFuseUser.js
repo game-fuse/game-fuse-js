@@ -830,6 +830,10 @@ class GameFuseUser {
         GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
       }
     }
+    
+    async refreshUserData(callback, dataTypes){
+        await downloadFullData(callback, dataTypes)
+    }
 
     async downloadFullData(callback, dataTypes = null) {
         try {
@@ -857,7 +861,7 @@ class GameFuseUser {
 
             GameFuseUtilities.HandleCallback(
                 response,
-                responseOk ? `Full data for user ${this.getUsername()} has been uccessfully downloaded` : response.data, // message from the api
+                responseOk ? `Full data for user ${this.getUsername()} has been successfully downloaded` : response.data, // message from the api
                 callback,
                 !!responseOk
             )

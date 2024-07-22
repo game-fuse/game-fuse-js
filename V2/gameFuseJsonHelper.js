@@ -158,6 +158,7 @@ class GameFuseJsonHelper {
 
     // on sign-in and on downloadFullUserData, takes the response and sets all attributes on the user object.
     static setFullUserData(apiData, userObj){
+        
         let friendsData = apiData.friends;
         let incomingFriendReqData = apiData.incoming_friend_requests;
         let outgoingFriendReqData = apiData.outgoing_friend_requests
@@ -220,6 +221,29 @@ class GameFuseJsonHelper {
             userObj.gameRounds = gameRoundsData.map(gameRoundData => {
                 return GameFuseJsonHelper.convertJsonToGameRound(gameRoundData);
             })
+        }
+        
+        
+        if (apiData.number_of_logins) {
+            userObj.numberOfLogins = apiData.number_of_logins;
+        }
+        if (apiData.last_login) {
+            userObj.lastLogin = apiData.last_login;
+        }
+        if (apiData.authentication_token) {
+            userObj.authenticationToken = apiData.authentication_token;
+        }
+        if (apiData.username) {
+            userObj.username = apiData.username;
+        }
+        if (apiData.score) {
+            userObj.score = apiData.score;
+        }
+        if (apiData.credits) {
+            userObj.credits = apiData.credits;
+        }
+        if (apiData.id) {
+            userObj.id = apiData.id;
         }
     }
 }
