@@ -189,6 +189,8 @@
         console.log(GameFuseUser.CurrentUser.getDirtyAttributes());
         console.log("Attributes:")
         console.log(GameFuseUser.CurrentUser.attributes);
+        
+        console.log("TEST COMPLETED SUCCESSUFLLY")
     }
 
 }
@@ -196,7 +198,7 @@
 
 
 
-const example = new GameFuseExample("32e09dd2-ff7d-4d44-ae89-fc52831217bb", "6");
+const example = new GameFuseExample("1a7f7c3b-cde1-4179-af06-b511358648d9", "1");
 
 example.start()
 

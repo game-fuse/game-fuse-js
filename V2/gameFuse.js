@@ -20,7 +20,7 @@
 
     static getBaseURL() {
         // return "http://localhost/api/v2";
-        return "https://gamefuse.co/api/v2";
+        return "http://worker2.gamefuse.co/api/v2";
     }
 
     static getGameId() {
@@ -77,8 +77,7 @@
         }
         this.Log(`GameFuse Setting Up Game Sending Request: ${GameFuse.getBaseURL()}/games/verify?${body}`);
         const response = await GameFuseUtilities.processRequest(`${GameFuse.getBaseURL()}/games/verify?${body}`);
-
-        if (!response.data) {
+        if (response.data) {
             this.Log(`GameFuse Setting Up Game Received Request Success: ${gameId}: ${token}`);
             this.id = response.data.id.toString();
             this.name = response.data.name;
