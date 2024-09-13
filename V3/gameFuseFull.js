@@ -19,8 +19,8 @@ class GameFuse {
     }
 
     static getBaseURL() {
-        // return "http://localhost/api/v2";
-        return "https://gamefuse.co/api/v2";
+        // return "http://localhost/api/v3";
+        return "https://gamefuse.co/api/v3";
     }
 
     static getGameId() {
@@ -165,7 +165,7 @@ class GameFuse {
     async signInRoutine(email, password, callback = undefined) {
         this.Log(`GameFuse Sign In: ${email}`);
         if (GameFuse.getGameId() == null) {
-            throw new Error("Please set up your game with PainLessAuth.SetUpGame before signing in users");
+            throw new Error("Please set up your game with GameFuse.SetUpGame before signing in users");
         }
         const formData = new FormData();
         formData.append("email", email);
@@ -204,7 +204,7 @@ class GameFuse {
     async signUpRoutine(email, password, password_confirmation, username, callback = undefined) {
         console.log("GameFuse Sign Up: " + email);
         if (GameFuse.getGameId() == null)
-            throw new GameFuseException("Please set up your game with PainLessAuth.SetUpGame before signing up users");
+            throw new GameFuseException("Please set up your game with GameFuse.SetUpGame before signing up users");
 
         const form = new FormData();
         form.append("email", email);
@@ -303,7 +303,7 @@ class GameFuse {
     async sendPasswordResetEmailRoutine(email, callback = undefined) {
         this.Log(`GameFuse Send Password Reset: ${email}`);
         if (GameFuse.getGameId() == null) {
-            throw new Error("Please set up your game with PainLessAuth.SetUpGame before signing in users");
+            throw new Error("Please set up your game with GameFuse.SetUpGame before signing in users");
         }
         const parameters = "?game_token=" + GameFuse.getGameToken() + "&game_id=" + GameFuse.getGameId().toString() + "&email=" + email;
         const url = GameFuse.getBaseURL() + "/games/" + GameFuse.getGameId() + "/forget_password" + parameters;
@@ -722,7 +722,7 @@ class GameFuseUser {
       this.dirtyAttributes[key] = val;
     }
 
-    async syncLocalAttributes(callback=undefined)
+    async syncLocalAttributes(callback = undefined)
     {
       this.setAttributes(this.attributes, callback, true);
     }
