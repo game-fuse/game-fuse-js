@@ -870,4 +870,38 @@ class GameFuseUser {
             GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
         }
     }
+    
+    async deleteUser(callback = undefined) {
+      try {
+        GameFuse.Log("GameFuseUser Destroying CurrentUser: " + leaderboardName);
+    
+        if (GameFuse.getGameId() == null) {
+          throw new GameFuseException(
+            "Please set up your game with GameFuse.SetUpGame before destroying CurrentUser"
+          );
+        }
+    
+    
+        const url = GameFuse.getBaseURL() + "/users/" + GameFuseUser.CurrentUser.id;
+    
+        const response = await GameFuseUtilities.processRequest(url, {
+          method: 'DELETE',
+          headers: {
+            'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken()
+          },
+          body: form
+        });
+    
+        const responseOk = await GameFuseUtilities.requestIsOk(response)
+        if (responseOk) {
+          GameFuse.Log("GameFuseUser deleted and all data cleared " );
+        }
+        GameFuse.resetGlobalVariables();
+    
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, "CurrentUser has been removed", callback, true);
+      } catch (error) {
+        console.log(error)
+        GameFuseUtilities.HandleCallback(typeof response !== 'undefined' ? response : undefined, error.message, callback, false)
+      }
+    }
 }

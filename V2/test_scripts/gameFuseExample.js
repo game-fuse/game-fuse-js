@@ -189,8 +189,9 @@
         console.log(GameFuseUser.CurrentUser.getDirtyAttributes());
         console.log("Attributes:")
         console.log(GameFuseUser.CurrentUser.attributes);
+        
     }
-
+    
 }
 
 
