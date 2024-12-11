@@ -21,7 +21,7 @@ class GameFuse {
     }
 
     static getBaseURL() {
-        return ENV?.baseUrl || "https://gamefuse.co/api/v2";
+        return ENV?.baseUrl || "https://gamefuse.co/api/v3";
     }
 
     static getGameId() {

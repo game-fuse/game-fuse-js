@@ -78,7 +78,7 @@ class GameFuseGroup {
                 GameFuse.Log("GameFuseGroup download available groups success");
 
                 // add all the groups to the available groups array
-                response.data.forEach((groupData) => {
+                response.data.groups.forEach((groupData) => {
                     currentUser.downloadedAvailableGroups.push(GameFuseJsonHelper.convertJsonToGroup(groupData));
                 });
             }
