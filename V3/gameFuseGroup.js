@@ -11,6 +11,7 @@ class GameFuseGroup {
         this.admins = admins;
         this.invites = joinRequests;
         this.joinRequests = invites;
+        this.attributes = [];
     };
 
     getID() {
@@ -573,5 +574,118 @@ class GameFuseGroup {
             members: updatedAttributes.members ? updatedAttributes.members.map(memberData => GameFuseJsonHelper.convertJsonToUser(memberData)) : this.members,
             admins: updatedAttributes.admins ? updatedAttributes.admins.map(adminData => GameFuseJsonHelper.convertJsonToUser(adminData)) : this.admins
         });
+    }
+
+    /**
+     * Get all attributes of the group
+     */
+    async getAttributes(callback = undefined) {
+        try {
+            GameFuse.Log(`Fetching attributes for group with name ${this.getName()}`);
+            const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}/attributes`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken(),
+                },
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+            if (responseOk) {
+                GameFuse.Log('GameFuseGroup getAttributes success');
+                this.attributes = response.data.map(attr => ({
+                    key: attr.key,
+                    value: attr.value,
+                    others_can_edit: attr.others_can_edit,
+                }));
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Successfully fetched attributes for group ${this.getName()}` : response.data,
+                callback,
+                !!responseOk
+            );
+        } catch (error) {
+            console.log(error);
+            GameFuseUtilities.HandleCallback(undefined, error.message, callback, false);
+        }
+    }
+
+    /**
+     * Create a new attribute for the group
+     */
+    async createAttribute(attribute, callback = undefined) {
+        try {
+            GameFuse.Log(`Creating a new attribute for group ${this.getName()}`);
+            const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}/add_attribute`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken(),
+                },
+                body: JSON.stringify({
+                    attributes: [attribute],
+                }),
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+            if (responseOk) {
+                GameFuse.Log('GameFuseGroup createAttribute success');
+                this.attributes.push(attribute);
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Successfully created attribute '${attribute.key}' for group ${this.getName()}` : response.data,
+                callback,
+                !!responseOk
+            );
+        } catch (error) {
+            console.log(error);
+            GameFuseUtilities.HandleCallback(undefined, error.message, callback, false);
+        }
+    }
+
+    /**
+     * Modify an existing attribute of the group
+     */
+    async modifyAttribute(key, newValue, callback = undefined) {
+        try {
+            GameFuse.Log(`Modifying attribute '${key}' for group ${this.getName()}`);
+            const url = `${GameFuse.getBaseURL()}/groups/${this.getID()}/modify_attribute`;
+            const response = await GameFuseUtilities.processRequest(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authentication-token': GameFuseUser.CurrentUser.getAuthenticationToken(),
+                },
+                body: JSON.stringify({
+                    key: key,
+                    value: newValue,
+                }),
+            });
+
+            const responseOk = await GameFuseUtilities.requestIsOk(response);
+            if (responseOk) {
+                GameFuse.Log('GameFuseGroup modifyAttribute success');
+                const attribute = this.attributes.find(attr => attr.key === key);
+                if (attribute) {
+                    attribute.value = newValue;
+                }
+            }
+
+            GameFuseUtilities.HandleCallback(
+                response,
+                responseOk ? `Successfully modified attribute '${key}' for group ${this.getName()}` : response.data,
+                callback,
+                !!responseOk
+            );
+        } catch (error) {
+            console.log(error);
+            GameFuseUtilities.HandleCallback(undefined, error.message, callback, false);
+        }
     }
 }

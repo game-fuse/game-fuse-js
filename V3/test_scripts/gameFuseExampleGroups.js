@@ -385,6 +385,98 @@ class GameFuseExampleGroups {
 
                 Test.expect(group1InState).toEqual(undefined, 'This group should no longer exist in my group info since we just destroyed it.')
             });
+
+            await Test.describe('CREATE ATTRIBUTE', async () => {
+                console.log('CREATE ATTRIBUTE');
+                let group = currentUser().getGroups()[0];
+            
+                await Test.test('group.createAttribute', async () => {
+                    await group.createAttribute({ key: 'theme', value: 'dark', others_can_edit: true }, () => {
+                        console.log('attribute created');
+                    });
+                });
+            
+                await group.getAttributes(() => console.log('attributes fetched'));
+                let themeAttribute = group.attributes.find(attr => attr.key === 'theme');
+            
+                Test.expect(themeAttribute.value).toEqual('dark', 'The value of the theme attribute should be "dark".');
+                Test.expect(themeAttribute.others_can_edit).toEqual(true, 'The attribute should allow others to edit.');
+            });
+            
+            await Test.describe('MODIFY ATTRIBUTE', async () => {
+                console.log('MODIFY ATTRIBUTE');
+                let group = currentUser().getGroups()[0];
+            
+                await Test.test('group.modifyAttribute (success case)', async () => {
+                    await group.modifyAttribute('theme', 'light', () => {
+                        console.log('attribute modified');
+                    });
+                });
+            
+                await group.getAttributes(() => console.log('attributes fetched'));
+                let themeAttribute = group.attributes.find(attr => attr.key === 'theme');
+            
+                Test.expect(themeAttribute.value).toEqual('light', 'The value of the theme attribute should be updated to "light".');
+            });
+            
+            await Test.describe('MODIFY ATTRIBUTE (FAILURE)', async () => {
+                console.log('MODIFY ATTRIBUTE (FAILURE)');
+                
+
+                await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('user1 signed in'));
+
+                let options = {name: 'My Group 5', groupType: "multiplayer_party", canAutoJoin: false, isInviteOnly: false, maxGroupSize: 20}
+                await Test.test('GameFuseGroup.create(options)', async () => {
+                    await GameFuseGroup.create(options, () => console.log('group1 created'));
+                })
+
+                let existingGroup = currentUser().getGroups()[0];
+                
+                await GameFuse.signIn(this.user2.getTestEmail(), 'password', () => console.log('user2 signed in'));
+
+                await Test.test('group.requestToJoin', async () => {
+                    await existingGroup.join(() => console.log('user2 joined to join group1'));
+                })
+
+
+                await GameFuse.signIn(this.user1.getTestEmail(), 'password', () => console.log('user1 signed in'));
+                await Test.test('group.createAttribute', async () => {
+                    await existingGroup.createAttribute({ key: 'theme', value: 'dark', others_can_edit: false }, () => {
+                        console.log('attribute created');
+                    });
+                });
+
+                await GameFuse.signIn(this.user2.getTestEmail(), 'password', () => console.log('user2 signed in'));
+
+
+                await Test.test('group.modifyAttribute (failure case)', async () => {
+                    try {
+                        await existingGroup.modifyAttribute('theme', 'blue', () => {
+                            console.log('unauthorized modification attempt');
+                        });
+                    } catch (error) {
+                        console.error('Error during modification:', error.message);
+                    }
+                });
+            
+                // Fetch attributes again to confirm no modification occurred
+                await existingGroup.getAttributes(() => console.log('attributes fetched'));
+                let themeAttribute = existingGroup.attributes.find(attr => attr.key === 'theme');
+            
+                Test.expect(themeAttribute.value).toEqual('dark', 'The value of the theme attribute should remain unchanged.');
+            });
+            
+            await Test.describe('GET ATTRIBUTES', async () => {
+                console.log('GET ATTRIBUTES');
+                let group = currentUser().getGroups()[0];
+            
+                await Test.test('group.getAttributes', async () => {
+                    await group.getAttributes(() => console.log('attributes fetched'));
+            
+                    Test.expect(group.attributes.length).toBeGreaterThan(0, 'There should be at least one attribute fetched.');
+                    Test.expect(group.attributes.some(attr => attr.key === 'theme')).toEqual(true, 'The fetched attributes should include the "theme" key.');
+                });
+            });
         });
     }
 }

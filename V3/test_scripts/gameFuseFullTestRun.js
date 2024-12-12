@@ -11,7 +11,7 @@ class GameFuseFullTestRun {
     async run() {
         // RUN ALL OF THE TESTS, ONE BY ONE.
         
-        let testScripts = [new GameFuseExampleFriendships(), new GameFuseExampleGameRounds(), new GameFuseExampleGroups(), new GameFuseExampleMessages()]; // new GameFuseExampleGoogleOauth()
+        var testScripts = [new GameFuseExampleFriendships(), new GameFuseExampleGameRounds(), new GameFuseExampleGroups(), new GameFuseExampleMessages()]; // new GameFuseExampleGoogleOauth()
 
         document.body.innerHTML += "<h3>starting test runs!</h3>"
 
