@@ -1,5 +1,5 @@
 class GameFuseGroup {
-    constructor(id, name, groupType, canAutoJoin, isInviteOnly, maxGroupSize, memberCount, members = [], admins = [], joinRequests = [], invites = []) {
+    constructor(id, name, groupType, canAutoJoin, isInviteOnly, maxGroupSize, memberCount, members = [], admins = [], joinRequests = [], invites = [], admins_only_can_create_attributes = true) {
         this.id = id;
         this.name = name;
         this.groupType = groupType;
@@ -12,6 +12,7 @@ class GameFuseGroup {
         this.invites = joinRequests;
         this.joinRequests = invites;
         this.attributes = [];
+        this.admins_only_can_create_attributes = admins_only_can_create_attributes;
     };
 
     getID() {
@@ -114,6 +115,7 @@ class GameFuseGroup {
                 max_group_size: attributes.maxGroupSize,
                 can_auto_join: attributes.canAutoJoin,
                 is_invite_only: attributes.isInviteOnly,
+                admins_only_can_create_attributes: attributes.admins_only_can_create_attributes,
                 group_type: attributes.groupType || 'default'
             };
             let currentUser = GameFuseUser.CurrentUser;
